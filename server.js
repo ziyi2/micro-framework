@@ -16,9 +16,11 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "html");
 
 // 所有托管的静态资源都放在 public 目录下
+// 通过 http://${host}:4444/micro-app1.html 可以访问 public/micro-app1.html
 app.use(express.static(__dirname + "/public"));
 
 app.get("/", function (req, res) {
+  // 使用 ejs 模版引擎填充 views/main.html 中的 host 变量，并将其渲染到浏览器
   res.render("main", {
     host
   });
