@@ -13,12 +13,16 @@
     </style>
   </head>
   <body>
-    <h1 class="title">app1</h1>
+    <h1 class="title" id="micro-app-1">micro app 1</h1>
   </body>
 
   <script>
     window.a = 1;
-    console.log("micro app1 window.a: ", window.a);
-    console.log("micro app1 window.b: ", window.b);
+    console.log("[micro-app-1] micro app 1 window.a: ", window.a);
+    console.log("[micro-app-1] micro app 2 window.b: ", window.b);
+    const $app1title = document.getElementById('micro-app-1');
+    console.log('[micro-app-1] micro app 1 title: ', $app1title);
+    const $app2title = document.getElementById('micro-app-2');
+    console.log('[micro-app-1] micro app 2 title: ', $app2title);
   </script>
 </html>
