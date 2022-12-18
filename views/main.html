@@ -1,19 +1,17 @@
+<!-- 主应用 HTML：views/main.html -->
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>站点隔离测试</title>
 </head>
-
 <body>
-    <h1> index </h1>
+    <h1 onclick="javascript:window.open('http://<%= host %>:3000/iframe-app.html')"> index </h1>
     <!-- 同站应用：public/micro-app1.html -->
-    <iframe src="http://<%= host %>:4444/iframe-app.html">1</iframe>
+    <iframe src="http://<%= host %>:3000/iframe-app.html"></iframe>
     <!-- 跨站应用: https://juejin.cn/ -->
     <iframe src="https://juejin.cn"></iframe>
 </body>
-
 </html>
