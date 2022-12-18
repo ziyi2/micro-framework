@@ -5,15 +5,15 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>站点隔离测试</title>
 </head>
 
 <body>
     <h1> index </h1>
-    <!--同一站点应用：public/micro-app1.html -->
-    <iframe src="http://<%= host %>:4444/micro-app1.html" frameborder="0">1</iframe>
-    <!--同一站点应用: public/micro-app2.html -->
-    <iframe src="http://<%= host %>:4444/micro-app2.html" frameborder="0">2</iframe>
+    <!-- 同站应用：public/micro-app1.html -->
+    <iframe src="http://<%= host %>:4444/iframe-app.html">1</iframe>
+    <!-- 跨站应用: https://juejin.cn/ -->
+    <iframe src="https://juejin.cn"></iframe>
 </body>
 
 </html>
