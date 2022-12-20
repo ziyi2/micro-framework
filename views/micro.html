@@ -1,0 +1,19 @@
+<!-- 微应用 HTML：micro.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>iframe 应用</title>
+  </head>
+  <body>
+    <h1 class="title" id="micro-app-1">iframe 应用</h1>
+  </body>
+
+  <script>
+    // 设置 iframe 微应用的 localstorage 标识，顺便观察能否覆盖主应用的 localstorage 标识
+    localStorage.setItem('micro-app', 'true');
+    localStorage.setItem('main-app', 'false');
+  </script>
+</html>
