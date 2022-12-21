@@ -4,12 +4,6 @@
   "description": "",
   "main": "index.js",
   "type": "module",
-  "scripts": {
-    "main-start": "node main-server.js",
-    "micro-start": "node micro-server.js",
-    "main-ngrok-start": "node main-ngrok-server.js",
-    "same-origin-start": "node same-origin-server.js"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ziyi2/micro-framework.git"
