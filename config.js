@@ -1,3 +1,4 @@
+// config.js
 // https://github.com/indutny/node-ip
 import ip from 'ip';
 import path from "path";

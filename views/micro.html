@@ -5,15 +5,46 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>iframe 应用</title>
+    <title>iframe 微应用</title>
   </head>
   <body>
-    <h1 class="title" id="micro-app-1">iframe 应用</h1>
+    <h1>iframe 微应用</h1>
+    <button onclick="handleConsoleCookie()">微应用 - 打印 cookie</button>
+    <button onclick="handleSetLocalStorage()">
+      微应用 - 设置 localstorage & 覆盖主应用 localstorage
+    </button>
+    <button onclick="handleConsoleLocalStorage()">
+      微应用 - 打印 localstorage
+    </button>
   </body>
 
   <script>
-    // 设置 iframe 微应用的 localstorage 标识，顺便观察能否覆盖主应用的 localstorage 标识
-    localStorage.setItem('micro-app', 'true');
-    localStorage.setItem('main-app', 'false');
+    function handleSetLocalStorage() {
+      // 设置 iframe 微应用的 localstorage 标识
+      localStorage.setItem("micro-app", "true");
+      console.log(
+        "[微应用 - 设置 localstorage & 覆盖主应用 localstorage] micro-app localstorage 设置为 true"
+      );
+      // 覆盖主应用的 localstorage 标识
+      localStorage.setItem("main-app", "false");
+      console.log(
+        "[微应用 - 设置 localstorage & 覆盖主应用 localstorage] main-app localstorage 设置为 false"
+      );
+    }
+
+    function handleConsoleLocalStorage() {
+      console.log(
+        "[微应用 - 打印 localstorage] micro-app localstorage: ",
+        localStorage.getItem("micro-app")
+      );
+      console.log(
+        "[微应用 - 打印 localstorage] main-app localstorage: ",
+        localStorage.getItem("main-app")
+      );
+    }
+
+    function handleConsoleCookie() {
+      console.log("[微应用 - 打印 cookie] micro-app cookie: ", document.cookie);
+    }
   </script>
 </html>

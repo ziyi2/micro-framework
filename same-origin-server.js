@@ -14,12 +14,14 @@ app.set("view engine", "html");
 app.get("/", function (req, res) {
   // 设置主应用的 cookie 标识
   res.cookie("main-app", "true");
-  // 渲染 views/main.html 并填充模板中的 micro 变量
+  // 使用 ejs 模版引擎填充主应用 views/main.html 中的 micro 变量，并将其渲染到浏览器
   res.render("main", {
+    // micro 指向微应用的打开地址
     micro: `http://${host}:${port.main}/micro`,
   });
 });
 
+// 微应用和主应用同域，只是服务路由不同
 app.get("/micro", function (req, res) {
   // 设置 iframe 微应用的 cookie 标识，顺便观察能否覆盖主应用的 cookie 标识
   res.cookie("micro-app", "true").cookie("main-app", "false");

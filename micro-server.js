@@ -1,25 +1,29 @@
 // micro-server.js
 import path from "path";
-import express from 'express';
-import ejs from 'ejs';
-import cookieParser from "cookie-parser";
-import config from './config.js';
+import express from "express";
+import ejs from "ejs";
+import config from "./config.js";
 
 const { host, port, __dirname } = config;
 const app = express();
-
-app.use(cookieParser());
 
 app.engine(".html", ejs.__express);
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "html");
 
+// 浏览器访问 http://${host}:${port.micro}/ 时会渲染 views/micro.html
+// 端口不同，主应用和微应用跨域但是不跨站
 app.get("/", function (req, res) {
-  res.cookies &&
-  Object.keys(res.cookies).forEach((name) =>
-    res.cookie(name, res.cookies[name])
-  );
-  res.cookie("micro-app", "true");
+
+  // // 增加 SameSite 和 Secure 属性
+  // const cookieOptions = { sameSite: "none", secure: true };
+  // res
+  //   .cookie("micro-app", "true", cookieOptions)
+  //   // 设置 iframe 微应用的 cookie 标识，顺便观察能否覆盖主应用的 cookie 标识
+  //   .cookie("main-app", "false", cookieOptions);
+
+  // 设置 iframe 微应用的 cookie 标识，顺便观察能否覆盖主应用的 cookie 标识
+  res.cookie("micro-app", "true").cookie("main-app", "false");
   res.render("micro");
 });
 

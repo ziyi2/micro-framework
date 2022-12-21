@@ -5,14 +5,43 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>站点隔离测试</title>
+    <title>主应用</title>
   </head>
   <body>
-    <iframe src="<%= micro %>"></iframe>
+    <button onclick="handleConsoleCookie()">主应用 - 打印 cookie</button>
+    <button onclick="handleSetLocalStorage()">
+      主应用 - 设置 localstorage
+    </button>
+    <button onclick="handleConsoleLocalStorage()">
+      主应用 - 打印 localstorage
+    </button>
+    <br />
+    <!-- micro 变量填充: 指向微应用的打开地址 -->
+    <iframe src="<%= micro %>" width="700"></iframe>
   </body>
 
   <script>
-    // 设置 iframe 主应用的 localstorage 标识
-    localStorage.setItem('main-app', 'true');
+    function handleSetLocalStorage() {
+      // 设置主应用的 localstorage 标识
+      localStorage.setItem("main-app", "true");
+      console.log(
+        "[主应用 - 设置 localstorage] main-app localstorage 设置为 true"
+      );
+    }
+
+    function handleConsoleLocalStorage() {
+      console.log(
+        "[主应用 - 打印 localstorage] main-app localstorage: ",
+        localStorage.getItem("main-app")
+      );
+      console.log(
+        "[主应用 - 打印 localstorage] micro-app localstorage: ",
+        localStorage.getItem("micro-app")
+      );
+    }
+
+    function handleConsoleCookie() {
+      console.log("[主应用 - 打印 cookie] main-app cookie: ", document.cookie);
+    }
   </script>
 </html>
