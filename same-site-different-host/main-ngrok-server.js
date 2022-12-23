@@ -1,7 +1,7 @@
-// main-ngrok-server.js
+// same-site-different-host/main-ngrok-server.js
 import path from "path";
 import express from "express";
-// https://github.com/bubenshchykov/ngrok
+// ngrok 的 github 地址：https://github.com/bubenshchykov/ngrok
 import ngrok from "ngrok";
 import ejs from "ejs";
 
@@ -30,7 +30,7 @@ app.get("/", function (req, res) {
   // 使子域的微应用可以共享 Cookie
   res.cookie("main-app-share", "true", { domain: main.replace("http://", "") });
   res.render("main", {
-    // 微应用访问地址：http://ziyi.xxx.ngrok.io
+    // 微应用访问地址：http://ziyi.xxx.ngrok.io:${port}
     // 使用 iHosts 配置 ziyi.xxx.ngrok.io 指向本机的 ip 地址
     // 访问 http://ziyi.xxx.ngrok.io:${port} 时会指向 http://${host}:${port}
     micro: `http://ziyi.${main.replace("http://", "")}:${port.micro}`,

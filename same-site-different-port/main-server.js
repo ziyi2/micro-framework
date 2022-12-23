@@ -1,9 +1,6 @@
-// main-server.js
+// same-site-different-port/main-server.js
 import path from "path";
-// https://github.com/expressjs/express
 import express from "express";
-// ejs 中文网站: https://ejs.bootcss.com/#promo
-// ejs express 示例: https://github.com/expressjs/express/blob/master/examples/ejs/index.js
 import ejs from "ejs";
 import config from "../config.js";
 const { port, host, __dirname } = config;
