@@ -9,6 +9,8 @@
   </head>
 
   <body>
+    <!-- import-maps 主要用于映射 HTTP 请求路径别名，类似于 Webpack 中的 alias 和 TypeScript 中的 paths 配置 -->
+    <!-- import-maps:  https://github.com/WICG/import-maps -->
     <script type="importmap">
       {
         "imports": {
@@ -17,7 +19,7 @@
         }
       }
     </script>
-    <!-- <script type="importmap" src="import-map.importmap"></script> -->
+
     <script type="module">
       // 自定义模块 - add 函数
       import { add } from "custom_modules/add.js";
