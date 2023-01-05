@@ -1,5 +1,5 @@
-import { mount, unmount } from "vue-micro-app";
 import React, { useEffect } from "react";
+const { mount, unmount } = require('vue-micro-app')
 
 function VueApp() {
   useEffect(() => {
@@ -7,7 +7,7 @@ function VueApp() {
     return () => {
       unmount();
     };
-  }, [mount]);
+  }, []);
   return <div id="vue-app" style={{ textAlign: "center" }}></div>;
 }
 

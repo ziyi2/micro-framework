@@ -229,8 +229,7 @@ module.exports = function (webpackEnv) {
         : isEnvDevelopment &&
           ((info) =>
             path.resolve(info.absoluteResourcePath).replace(/\\/g, "/")),
-      library: "react-app",
-      libraryTarget: "umd",
+      libraryTarget: "commonjs",
     },
     cache: {
       type: "filesystem",

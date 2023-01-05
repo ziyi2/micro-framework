@@ -1,4 +1,4 @@
-import { mount, unmount } from "react-micro-app";
+const { mount, unmount } = require("react-micro-app");
 import React, { useEffect } from "react";
 
 function ReactApp() {
