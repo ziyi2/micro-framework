@@ -9,5 +9,9 @@
   },
   "dependencies": {
     "react-router-dom": "^6.6.1"
-  }
+  },
+  "engines": {
+    "node": ">16"
+  },
+  "engineStrict": true
 }
