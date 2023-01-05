@@ -1,15 +1,15 @@
 import { createApp } from "vue";
 import App from "./App.vue";
-const app = createApp(App);
+let app;
 
 export function mount() {
-  console.log('vue-app')
-  console.log(document.getElementById('vue-app'))
+  console.log("vue app mount");
+  app = createApp(App);
   app.mount("#vue-app");
 }
 
 export function unmount() {
-  app.unmount();
+  console.log("vue app unmount: ", app);
+  app && app.unmount();
 }
 
-app.mount("#app");

@@ -1,15 +1,14 @@
+import { mount, unmount } from "react-micro-app";
+import React, { useEffect } from "react";
 
-import React from "react";
-
-export default class React extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  componentDidMount() {
-  }
-
-  render() {
-    return <div id="react-app"></div>;
-  }
+function ReactApp() {
+  useEffect(() => {
+    mount();
+    return () => {
+      unmount();
+    };
+  }, []);
+  return <div id="react-app"></div>;
 }
+
+export default React.memo(ReactApp);

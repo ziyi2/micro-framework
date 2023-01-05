@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
 import "./App.css";
 
 function App() {
@@ -9,10 +9,10 @@ function App() {
         <nav>
           <ul>
             <li>
-              <a href={`/angular`}>Angular Micro App</a>
+              <Link to={'react'}>React Micro App</Link>
             </li>
             <li>
-              <a href={`/vue`}>Vue Micro App</a>
+              <Link to={'vue'}>Vue Micro App</Link>
             </li>
           </ul>
         </nav>

@@ -22,7 +22,7 @@
   padding: 0;
 }
 
-.app-nav li {
+.app-nav li a {
   padding: 8px 8px;
 }
 

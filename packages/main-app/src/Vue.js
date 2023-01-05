@@ -1,16 +1,14 @@
-import { mount } from "vue-app";
-import React from 'react'
+import { mount, unmount } from "vue-micro-app";
+import React, { useEffect } from "react";
 
-export default class Vue extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  componentDidMount() {
+function VueApp() {
+  useEffect(() => {
     mount();
-  }
-
-  render() {
-    return <div id="vue-app" style={{ textAlign: "center"}}></div>;
-  }
+    return () => {
+      unmount();
+    };
+  }, [mount]);
+  return <div id="vue-app" style={{ textAlign: "center" }}></div>;
 }
+
+export default VueApp;

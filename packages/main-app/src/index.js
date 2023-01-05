@@ -4,8 +4,8 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Angular from "./Angular";
-import Vue from "./Vue";
+import ReactApp from "./React";
+import VueApp from "./Vue";
 
 const router = createBrowserRouter([
   {
@@ -13,12 +13,12 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       {
-        path: "/angular",
-        element: <Angular />,
+        path: "react",
+        element: <ReactApp />,
       },
       {
-        path: "/vue",
-        element: <Vue />,
+        path: "vue",
+        element: <VueApp />,
       },
     ],
   },
