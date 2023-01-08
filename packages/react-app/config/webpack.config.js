@@ -229,7 +229,10 @@ module.exports = function (webpackEnv) {
         : isEnvDevelopment &&
           ((info) =>
             path.resolve(info.absoluteResourcePath).replace(/\\/g, "/")),
-      libraryTarget: "commonjs",
+      // libraryTarget: "commonjs",
+      library: {
+        type: 'commonjs'
+      }
     },
     cache: {
       type: "filesystem",
