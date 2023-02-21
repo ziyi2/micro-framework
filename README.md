@@ -1,14 +1,9 @@
-# NPM 微前端示例
+# Web 应用构建示例
 
+执行构建
 
-``` bash
-# 安装 Lerna 工具
-npm install --global lerna
-
-# 依赖安装并链接微应用包
-lerna bootstrap
-
-# 进入主应用启动
-cd packages/main-app
-npm start
 ```
+npm run build
+```
+
+在浏览器中打开 `dist/index.html` 进行访问测试。

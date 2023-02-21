@@ -1,17 +1,29 @@
 {
-  "name": "root",
-  "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
-  "devDependencies": {
-    "lerna": "^6.3.0"
+  "name": "micro-framework",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ziyi2/micro-framework.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ziyi2/micro-framework/issues"
+  },
+  "homepage": "https://github.com/ziyi2/micro-framework#readme",
   "dependencies": {
-    "react-router-dom": "^6.6.1"
+    "lodash": "^4.17.21"
   },
-  "engines": {
-    "node": ">16"
-  },
-  "engineStrict": true
+  "devDependencies": {
+    "@babel/preset-env": "^7.20.2",
+    "babel-loader": "^9.1.2",
+    "html-webpack-plugin": "^5.5.0",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
+  }
 }
