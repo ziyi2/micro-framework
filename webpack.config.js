@@ -1,4 +1,5 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+// const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
 
 module.exports = {
   mode: "production",
@@ -12,11 +13,11 @@ module.exports = {
     },
   },
   // 对代码进行分离
-  optimization: {
-    splitChunks: {
-      chunks: "all",
-    },
-  },
+  // optimization: {
+  //   splitChunks: {
+  //     chunks: "all",
+  //   },
+  // },
   module: {
     rules: [
       {
@@ -27,11 +28,15 @@ module.exports = {
           loader: "babel-loader",
           options: {
             presets: ["@babel/preset-env"],
+            // plugins: ["lodash"],
           },
         },
       },
     ],
   },
   // 将构建后的 JS 文件添加的 HTML 中
-  plugins: [new HtmlWebpackPlugin()],
+  plugins: [
+    new HtmlWebpackPlugin(),
+    // new LodashModuleReplacementPlugin,
+  ],
 };
