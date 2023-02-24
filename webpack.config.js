@@ -1,42 +1,21 @@
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-// const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
 
 module.exports = {
   mode: "production",
-  entry: "./src/index.js",
+  entry: "./src/index.ts",
   output: {
     path: __dirname + "/dist",
     filename: "[name].bundle.js",
-    // 将最外层立即执行的箭头函数改为 ES5 语法
-    environment: {
-      arrowFunction: false,
-    },
   },
-  // 对代码进行分离
-  // optimization: {
-  //   splitChunks: {
-  //     chunks: "all",
-  //   },
-  // },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
+  },
   module: {
     rules: [
       {
-        test: /\.m?js$/,
-        exclude: /(node_modules)/,
-        use: {
-          // 将 ES6+ 语法转换成 ES5
-          loader: "babel-loader",
-          options: {
-            presets: ["@babel/preset-env"],
-            // plugins: ["lodash"],
-          },
-        },
+        test: /\.ts$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
       },
     ],
-  },
-  // 将构建后的 JS 文件添加的 HTML 中
-  plugins: [
-    new HtmlWebpackPlugin(),
-    // new LodashModuleReplacementPlugin,
-  ],
+  }
 };
