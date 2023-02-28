@@ -1,10 +1,33 @@
+// tsconfig.json
+// 中文查看：https://www.tslang.cn/docs/handbook/tsconfig-json.html
+// 英文查看：https://www.typescriptlang.org/docs/handbook/tsconfig-json.html
 {
   "compilerOptions": {
-    "outDir": "./dist/",
-    "noImplicitAny": true,
-    "module": "es6",
-    "target": "es5",
-    "allowJs": false,
-    "moduleResolution": "node"
-  }
+    // 模块解析策略：Node 和 Classic
+    // 中文查看：https://www.tslang.cn/docs/handbook/module-resolution.html
+    // 英文查看：https://www.typescriptlang.org/docs/handbook/module-resolution.html
+    // 一般情况下都是使用 Node，简单理解为参考 Node 的 require 算法解析引入模块的路径
+    "moduleResolution": "node",
+    // 允许从没有设置默认导出的模块中默认导入
+    "allowSyntheticDefaultImports": true,
+    // 删除所有注释，除了以 /!* 开头的版权信息
+    "removeComments": true,
+    // 生成相应的 .d.ts文件
+    "declaration": true,
+    // 启用所有严格类型检查选项。启用 --strict 相当于启用 --noImplicitAny, --noImplicitThis, --alwaysStrict， --strictNullChecks, --strictFunctionTypes 和 --strictPropertyInitialization
+    "strict": true,
+    // 禁止对同一个文件的不一致的引用
+    "forceConsistentCasingInFileNames": true,
+    // 报错时不生成输出文件
+    "noEmitOnError": true,
+    // 编译过程中需要引入的库文件的列表
+    "lib": ["DOM", "ESNext"],
+    // 允许使用 import 代替 import *
+    // 英文查看：https://www.typescriptlang.org/tsconfig#esModuleInterop
+    "esModuleInterop": true
+  },
+  // 编译器包含的文件列表，可以使用 glob 匹配模式
+  "include": ["src/**/*"],
+  // 编译器排除的文件列表
+  "exclude": ["node_modules"]
 }
