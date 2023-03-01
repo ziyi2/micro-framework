@@ -1,7 +1,6 @@
 import path from "path";
 import { TargetTypeEnum } from "./type";
 
-
 // 输出规范的目标集
 export const targets = [
   {
