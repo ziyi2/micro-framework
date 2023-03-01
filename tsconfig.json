@@ -2,6 +2,10 @@
 // 中文查看：https://www.tslang.cn/docs/handbook/tsconfig-json.html
 // 英文查看：https://www.typescriptlang.org/docs/handbook/tsconfig-json.html
 {
+  // ts-node 文档：https://github.com/TypeStrong/ts-node
+  // tsconfig extends：https://github.com/tsconfig/bases
+  "extends": "ts-node/node16/tsconfig.json",
+
   "compilerOptions": {
     // 模块解析策略：Node 和 Classic
     // 中文查看：https://www.tslang.cn/docs/handbook/module-resolution.html
@@ -21,10 +25,19 @@
     // 报错时不生成输出文件
     "noEmitOnError": true,
     // 编译过程中需要引入的库文件的列表
-    "lib": ["DOM", "ESNext"],
+    "lib": ["DOM", "ES2015.Promise", "ES6", "ESNext"],
     // 允许使用 import 代替 import *
     // 英文查看：https://www.typescriptlang.org/tsconfig#esModuleInterop
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "module": "CommonJS",
+    // 解析非相对模块名的基准目录
+    "baseUrl": ".",
+    // 将每个文件作为单独的模块
+    "isolatedModules": false,
+    // 允许引入 .json 扩展的模块文件
+    "resolveJsonModule": true,
+    // 启动 decorators
+    "experimentalDecorators": true
   },
   // 编译器包含的文件列表，可以使用 glob 匹配模式
   "include": ["src/**/*"],

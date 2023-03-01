@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "gulp"
+    "build": "ts-node build/build.ts"
+  },
+  "config": {
+    "flat": true
   },
   "repository": {
     "type": "git",
@@ -16,14 +19,24 @@
     "url": "https://github.com/ziyi2/micro-framework/issues"
   },
   "homepage": "https://github.com/ziyi2/micro-framework#readme",
-  "dependencies": {
-    "@types/lodash": "^4.14.191",
-    "lodash": "^4.17.21"
-  },
   "devDependencies": {
-    "gulp": "^4.0.2",
-    "gulp-typescript": "^6.0.0-alpha.1",
-    "merge2": "^1.4.1",
-    "typescript": "^4.9.5"
-  }
+    "@types/fs-extra": "11.0.1",
+    "@types/glob": "8.1.0",
+    "@types/gulp": "4.0.10",
+    "@types/merge2": "1.4.0",
+    "@types/node": "18.14.2",
+    "@types/shelljs": "0.8.11",
+    "fs-extra": "11.1.0",
+    "glob": "9.0.1",
+    "gulp": "4.0.2",
+    "gulp-typescript": "6.0.0-alpha.1",
+    "merge2": "1.4.1",
+    "shelljs": "0.8.5",
+    "ts-node": "10.9.1",
+    "typescript": "4.9.5"
+  },
+  "engines": {
+    "node": ">=16.18.1"
+  },
+  "engineStrict": true
 }
