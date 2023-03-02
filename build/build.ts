@@ -40,7 +40,7 @@ class Build extends Base {
       {
         // 构建同步执行
         async: false,
-        // 构建失败则退出进程
+        // 构建失败则退出进程（例如 TypeScript 类型检查失败），停止后续的平铺构建处理
         fatal: true,
       }
     );
