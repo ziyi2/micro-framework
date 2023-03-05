@@ -71,7 +71,7 @@ class Build extends Base {
     // 如果存在相同的文件名称，则清空构建目录，并退出构建处理
     if (this.hasSameFileName(files)) {
       this.init();
-      return process.exit(0);
+      return process.exit(1);
     }
 
     // 进行构建文件的平铺处理
@@ -97,10 +97,9 @@ class Build extends Base {
         : [file];
       // 如果 index.js 的文件路径存在多个，则提示错误并退出进程，例如 { "index.js": ["lib/commonjs/index.js", "lib/commonjs/core/index.js" ] }
       if (fileRepeatMap[fileName]?.length > 1) {
-        // 可以使用 chalk 打印颜色
-        console.error(`[编译错误] 编译不允许存在相同的文件名称: ${fileName}`);
-        console.error(
-          `[编译错误] 相同的文件名称路径：${fileRepeatMap[fileName].join(", ")}`
+        this.logError(`[编译失败] 编译不允许存在相同的文件名称: ${fileName}`);
+        this.logError(
+          `[编译失败] 相同的文件名称路径：${fileRepeatMap[fileName].join(", ")}`
         );
         return true;
       }
@@ -156,9 +155,8 @@ class Build extends Base {
         if (!fileName || paths.length === 1) {
           return match;
         }
-        console.info(
-          `[编译信息] 在文件 ${file} 中匹配和替换的 require 路径: `,
-          `${match} => ./${fileName}`
+        this.logInfo(
+          `[编译信息] 在文件 ${file} 中匹配和替换的 require 路径: ${match} => ./${fileName}`
         );
         // 平铺后直接引入同级目录下的文件
         return `./${fileName}`;

@@ -1,6 +1,8 @@
 import path from "path";
+import fs from "fs-extra";
+import chalk from "chalk";
 import { targets } from "./config";
-import { ITarget } from "./type";
+import { IPackageJson, ITarget } from "./type";
 
 export class Base {
   public rootPath: string = "";
@@ -20,5 +22,17 @@ export class Base {
     // package.json 中的 config 参数
     // https://docs.npmjs.com/cli/v8/configuring-npm/package-json#config
     return process.env.npm_package_config_flat;
+  }
+
+  getPackageJson(): IPackageJson {
+    return fs.readJSONSync(path.join(this.rootPath, "package.json"));
+  }
+
+  logError(message: string) {
+    console.error(chalk.red(message));
+  }
+
+  logInfo(message: string) {
+    console.info(chalk.green(message));
   }
 }

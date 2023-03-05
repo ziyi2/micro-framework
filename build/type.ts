@@ -5,9 +5,18 @@ export enum TargetTypeEnum {
   ESModule = "ESModule",
 }
 
+export interface IPackageJson {
+  name: string;
+  main: string;
+  module?: string;
+  "jsnext:main"?: string;
+  [key: string]: any;
+}
+
 export interface ITarget {
   name: string;
   type: TargetTypeEnum;
   tsconfig: Settings;
+  packagejson: IPackageJson;
   dest: string;
 }

@@ -33,7 +33,7 @@
     // 解析非相对模块名的基准目录
     "baseUrl": ".",
     // 将每个文件作为单独的模块
-    "isolatedModules": false,
+    "isolatedModules": true,
     // 允许引入 .json 扩展的模块文件
     "resolveJsonModule": true,
     // 启动 decorators

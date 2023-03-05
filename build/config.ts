@@ -16,6 +16,10 @@ export const targets = [
       target: "ES5",
     },
     dest: path.join(__dirname, "../lib/commonjs"),
+    packagejson: {
+      name: "ziyi-micro-framework",
+      main: "index.js"
+    }
   },
   {
     name: "build esmodule",
@@ -25,5 +29,11 @@ export const targets = [
       target: "ES5",
     },
     dest: path.join(__dirname, "../lib/es"),
+    packagejson: {
+      name: "ziyi-micro-framework-es",
+      main: "index.js",
+      module: "index.js",
+      "jsnext:main": "index.js"
+    },
   },
 ];
