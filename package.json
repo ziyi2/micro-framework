@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "build": "ts-node build/build.ts",
-    "release": "ts-node build/release.ts"
+    "release": "npm run build && ts-node build/release.ts"
   },
   "config": {
     "flat": true
