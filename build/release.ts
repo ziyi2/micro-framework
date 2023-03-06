@@ -2,6 +2,7 @@ import fs from "fs-extra";
 import shell from "shelljs";
 import semver from "semver";
 import fetch from "node-fetch";
+import simpleGit from "simple-git";
 import path from "path";
 import { Base } from "./base";
 import { ITarget } from "./type";
@@ -63,12 +64,49 @@ class Release extends Base {
   async check() {
     const targets = this.getTargets();
     if (!targets?.length) return;
-    // 检查 package.json 和 README.md 是否存在
+    // 发布分支检测
+    await this.checkBranch();
+    // 发布文件检测
     this.checkPublishFiles(targets);
-    // 检查远程发布的版本是否大于本地待发布的版本（防止先发布 1.0.3，后发布 1.0.2）
+    // 发布版本检测
     await this.checkLocalVersion(targets);
   }
 
+  // 发布分支检测
+  // 1、发布只能基于 master 分支进行（在 checkBranch 函数中进行卡口设置）
+  // 2、所有的开发不能将本地 master 分支的变更 push 到远程的 master 分支（在 Github 上进行分支保护设置）
+  // 3、所有的开发不能对本地 master 分支进行变更后再发布操作，防止本地偷偷发布没有 Code Review 的代码（在 checkBranch 函数中进行卡口设置）
+  async checkBranch() {
+    const git = simpleGit();
+    const branch = await git.branchLocal();
+    if (!/^master$/.test(branch?.current)) {
+      // 这里以 github 为例，进行打印说明
+      this.logError(
+        `[发布失败]: 发布分支只能为 master 分支，请切换发布分支并提交 Pull Request 和 Code Review 流程进行发布！`
+      );
+      process.exit(1);
+    }
+    // 确保当前的 master 分支的文件没有变更
+    const status = await git.status();
+    if (status?.files?.length) {
+      this.logError("[发布失败]: 不允许更改本地 master 代码！");
+      process.exit(1);
+    }
+    // 确保当前 master 分支的代码和远程代码一致（防止本地偷偷发布没有 Code Review 的代码）
+    // 有没有其他方式可以比较本地 master 和远程 master 分支是一致的？
+    const { stdout } = shell.exec("git diff origin/master master", {
+      silent: true,
+    });
+    // 如果有打印信息，则说明存在差异
+    if (stdout) {
+      console.error(
+        `[发布失败]: 发布之前确保本地 master 分支和远程 master 分支内容一致！`
+      );
+      process.exit(1);
+    }
+  }
+
+  // 检查 package.json 和 README.md 是否存在
   checkPublishFiles(targets: ITarget[]) {
     targets.forEach((target) => {
       const checkFiles = ["package.json", "README.md"];
@@ -82,6 +120,7 @@ class Release extends Base {
     });
   }
 
+  // 检查远程发布的版本是否大于本地待发布的版本（防止先发布 1.0.3，后发布 1.0.2）
   async checkLocalVersion(targets: ITarget[]) {
     const packageJson = this.getPackageJson();
     const localVersion = packageJson?.version;
@@ -121,7 +160,7 @@ class Release extends Base {
 
       // 使用 npm publish 执行发布
       // TODO：npm 可以做成一个工具函数，例如检测 cnpm、npm、yarn、pnpm 命令是否存在以及执行的优先级，`${getPackageManager()} publish`
-      const result = shell.exec("npm publish")
+      const result = shell.exec("npm publish");
       if (result.code !== 0) {
         this.logError(`[发布失败]：${target.packagejson.name} 发布失败！`);
         shell.cd(this.rootPath);
