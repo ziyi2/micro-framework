@@ -100,7 +100,7 @@ class Release extends Base {
     console.log("stdout: ", stdout);
     // 如果有打印信息，则说明存在差异
     if (stdout) {
-      console.error(
+      this.logError(
         `[发布失败]: 发布之前确保本地 master 分支和远程 master 分支内容一致！`
       );
       process.exit(1);
