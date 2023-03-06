@@ -97,7 +97,6 @@ class Release extends Base {
     const { stdout } = shell.exec("git diff origin/master master", {
       silent: true,
     });
-    console.log("stdout: ", stdout);
     // 如果有打印信息，则说明存在差异
     if (stdout) {
       this.logError(
