@@ -8,6 +8,4 @@ export * from "./sandbox/sandbox1";
 export * from "./sandbox/sandbox2";
 export * from "./sandbox/sandbox3";
 
-// function a(b) {
-//   console.log(b);
-// }
+

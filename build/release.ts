@@ -67,11 +67,6 @@ class Release extends Base {
     this.checkPublishFiles(targets);
     // 检查远程发布的版本是否大于本地待发布的版本（防止先发布 1.0.3，后发布 1.0.2）
     await this.checkLocalVersion(targets);
-
-    // // 检查远程发布的版本是否大于本地待发布的版本（防止先发布 1.0.3，后发布 1.0.2）
-    // // http://registry.npmjs.org/packageName/latest
-    // // semver.gte()
-    // const remoteVersion = await fetch(`http://registry.npmjs.org/${tar}`)
   }
 
   checkPublishFiles(targets: ITarget[]) {
