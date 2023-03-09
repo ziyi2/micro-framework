@@ -3,7 +3,8 @@
   "version": "1.0.6",
   "description": "",
   "scripts": {
-    "build": "ts-node build/build.ts",
+    "lint": "eslint --ext .ts src",
+    "build": "npm run lint && ts-node build/build.ts",
     "release": "npm run build && ts-node build/release.ts"
   },
   "config": {
