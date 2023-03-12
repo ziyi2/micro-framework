@@ -4,6 +4,7 @@ module.exports = {
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    'prettier'
   ],
   // 解析器：将 TypeScript 的 AST 转换成兼容 ESLint 的 AST
   parser: "@typescript-eslint/parser",
