@@ -42,6 +42,7 @@
     "gulp": "4.0.2",
     "gulp-typescript": "6.0.0-alpha.1",
     "husky": "8.0.3",
+    "lint-staged": "13.2.0",
     "merge2": "1.4.1",
     "node-fetch": "2.6.7",
     "prettier": "2.8.4",
