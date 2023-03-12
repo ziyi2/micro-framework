@@ -6,7 +6,9 @@
     "lint": "eslint --ext .ts src",
     "prettier": "prettier src",
     "build": "npm run lint && ts-node build/build.ts",
-    "release": "npm run build && ts-node build/release.ts"
+    "release": "npm run build && ts-node build/release.ts",
+    "prepare": "husky install",
+    "test": "echo \"放弃 commit 提交\" && exit 2"
   },
   "config": {
     "flat": true
@@ -39,6 +41,7 @@
     "glob": "9.0.1",
     "gulp": "4.0.2",
     "gulp-typescript": "6.0.0-alpha.1",
+    "husky": "8.0.3",
     "merge2": "1.4.1",
     "node-fetch": "2.6.7",
     "prettier": "2.8.4",
