@@ -143,7 +143,9 @@ class Release extends Base {
         const remotePackage = (await res.json()) as IPackageJson;
         if (semver.gte(remotePackage?.version as string, localVersion)) {
           this.logError(
-            `[发布失败]：当前 ${packageName} 需要发布的版本 ${localVersion} 小于等于已经发布的版本 ${remotePackage.version}！`
+            `[发布失败]：当前 ${packageName} 需要发布的版本 ${localVersion} 小于等于已经发布的版本 ${
+              remotePackage.version as string
+            }！`
           );
           process.exit(1);
         }
