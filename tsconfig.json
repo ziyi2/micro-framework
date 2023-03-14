@@ -40,7 +40,7 @@
     "experimentalDecorators": true
   },
   // 编译器包含的文件列表，可以使用 glob 匹配模式
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "build/**/*"],
   // 编译器排除的文件列表
   "exclude": ["node_modules"]
 }

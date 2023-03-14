@@ -10,7 +10,7 @@ export interface IPackageJson {
   main: string;
   module?: string;
   "jsnext:main"?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ITarget {

@@ -5,7 +5,7 @@ import fetch from "node-fetch";
 import simpleGit from "simple-git";
 import path from "path";
 import { Base } from "./base";
-import { ITarget } from "./type";
+import { IPackageJson, ITarget } from "./type";
 
 class Release extends Base {
   constructor() {
@@ -43,7 +43,7 @@ class Release extends Base {
 
   filterPackageJson(target: ITarget) {
     const packageJson = this.getPackageJson();
-    const releasePackageJson: any = {};
+    const releasePackageJson: { [key: string]: unknown } = {};
     [
       "name",
       "version",
@@ -123,7 +123,7 @@ class Release extends Base {
   // 检查远程发布的版本是否大于本地待发布的版本（防止先发布 1.0.3，后发布 1.0.2）
   async checkLocalVersion(targets: ITarget[]) {
     const packageJson = this.getPackageJson();
-    const localVersion = packageJson?.version;
+    const localVersion = packageJson?.version as string;
     if (!localVersion) {
       this.logError(
         `[发布失败]：请填写 ${path.join(
@@ -140,8 +140,8 @@ class Release extends Base {
         const res = await fetch(
           `http://registry.npmjs.org/${packageName}/latest`
         );
-        const remotePackage = await res.json();
-        if (semver.gte(remotePackage?.version, localVersion)) {
+        const remotePackage = (await res.json()) as IPackageJson;
+        if (semver.gte(remotePackage?.version as string, localVersion)) {
           this.logError(
             `[发布失败]：当前 ${packageName} 需要发布的版本 ${localVersion} 小于等于已经发布的版本 ${remotePackage.version}！`
           );
@@ -169,11 +169,13 @@ class Release extends Base {
           "release.log",
           `${new Date().toLocaleString()}：${
             target.packagejson.name
-          } 发布版本 ${packageJson.version} 失败！\n失败原因：${result.stderr}`
+          } 发布版本 ${packageJson?.version as string} 失败！\n失败原因：${
+            result.stderr
+          }`
         );
       }
     });
   }
 }
 
-new Release().run();
+void new Release().run();
