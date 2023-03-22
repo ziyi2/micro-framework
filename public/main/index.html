@@ -95,7 +95,7 @@
           window.addEventListener("hashchange", () => {
             this.microApps?.forEach(async (microApp) => {
               // 匹配需要激活的微应用
-              if (microApp.hash === window.location.hash) {
+              if (microApp.id === window.location.hash.replace('#', '')) {
                 // 加载 Script 标签
                 microApp?.script && !this.hasLoadScript(microApp) && (await this.loadScript(microApp));
                 window?.[microApp.mount]?.("#micro-app-slot");
@@ -122,7 +122,7 @@
         createMicroAppNav(microApps) {
           const fragment = new DocumentFragment();
           this.microApps?.forEach((microApp) => {
-            // TODO: APP 数据规范检测 (例如是否有 script、hash、mount、unmount 等）
+            // TODO: APP 数据规范检测 (例如是否有 script、mount、unmount 等）
             const button = document.createElement("button");
             button.textContent = microApp.name;
             button.id = microApp.id;

@@ -24,7 +24,6 @@ app.post("/microapps", function (req, res) {
       mount: "micro1_mount",
       // 挂载到 window 上的启动函数 window.micro1_unmount
       unmount: "micro1_unmount",
-      hash: "#micro1",
       prefetch: true,
     },
     {
@@ -33,7 +32,6 @@ app.post("/microapps", function (req, res) {
       script: `http://${host}:${port.micro}/micro2.js`,
       mount: "micro2_mount",
       unmount: "micro2_unmount",
-      hash: "#micro2",
       prefetch: true,
     },
   ]);
