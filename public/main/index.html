@@ -60,12 +60,16 @@
           });
         }
 
-        removeScript({ id }) {
-          // 寻找需要被移除的 script
-          const scripts = document.querySelectorAll(`[micro=${id}]`);
-          if (!scripts?.length) return;
-          scripts.forEach((script) => script.parentNode?.removeChild(script));
+        hasLoadScript({ id }) {
+          const script = document.querySelector(`[micro=${id}]`);
+          return !!script;
         }
+
+        // removeScript({ id }) {
+        //   // 寻找需要被移除的 script
+        //   const script = document.querySelector(`[micro=${id}]`);
+        //   script.parentNode?.removeChild(script)
+        // }
       }
 
       // 微应用管理
@@ -91,13 +95,11 @@
               // 匹配需要激活的微应用
               if (microApp.hash === window.location.hash) {
                 // 加载 Script 标签
-                microApp?.script && (await this.loadScript(microApp));
+                microApp?.script && !this.hasLoadScript(microApp) && (await this.loadScript(microApp));
                 window?.[microApp.mount]?.("#micro-app-slot");
                 // 如果存在卸载 API 则进行应用卸载处理
               } else {
                 window?.[microApp.unmount]?.("#micro-app-slot");
-                this.removeScript(microApp);
-                window?.[microApp.mount]?.("#micro-app-slot");
               }
             });
           });
@@ -112,7 +114,7 @@
         }
 
         prefetchMicroAppScript() {
-          this.microApps?.forEach(this.prefetchScript);
+          this.microApps?.filter(microapp => microapp.prefetch)?.forEach(this.prefetchScript);
         }
 
         createMicroAppNav(microApps) {

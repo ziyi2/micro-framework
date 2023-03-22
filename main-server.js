@@ -25,6 +25,7 @@ app.post("/microapps", function (req, res) {
       // 挂载到 window 上的启动函数 window.micro1_unmount
       unmount: "micro1_unmount",
       hash: "#micro1",
+      prefetch: true,
     },
     {
       name: "micro2",
@@ -33,6 +34,7 @@ app.post("/microapps", function (req, res) {
       mount: "micro2_mount",
       unmount: "micro2_unmount",
       hash: "#micro2",
+      prefetch: true,
     },
   ]);
 });
