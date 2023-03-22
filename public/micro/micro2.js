@@ -10,9 +10,8 @@
     $el?.appendChild(root);
   };
 
-  window.micro2_unmount = function (el) {
-    if (!el || !root) return;
-    const $el = document.querySelector(el);
-    $el?.removeChild(root);
+  window.micro2_unmount = function () {
+    if (!root) return;
+    root.parentNode?.removeChild(root);
   };
 })();

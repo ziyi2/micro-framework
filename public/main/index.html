@@ -8,7 +8,9 @@
   </head>
   <body>
     <!-- 主导航设计，这里可以根据后端数据动态渲染导航 -->
-    <div id="nav"></div>
+    <div id="nav">
+      
+    </div>
     <!-- 内容区设计 -->
     <div class="container">
       <!-- 微应用渲染的插槽 -->
@@ -99,7 +101,7 @@
                 window?.[microApp.mount]?.("#micro-app-slot");
                 // 如果存在卸载 API 则进行应用卸载处理
               } else {
-                window?.[microApp.unmount]?.("#micro-app-slot");
+                window?.[microApp.unmount]?.();
               }
             });
           });
