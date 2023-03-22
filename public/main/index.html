@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- 主导航设计，这里可以根据后端数据动态渲染导航 -->
+    <div id="nav"></div>
+    <!-- 内容区设计 -->
+    <div class="container">
+      <!-- 微应用渲染的插槽 -->
+      <div id="micro-app-slot"></div>
+    </div>
+
+    <!-- 根据路由切换微应用 -->
+    <script type="text/javascript">
+      class UtilsManager {
+        constructor() {}
+
+        // API 接口管理
+        getMicroApps() {
+          return window
+            .fetch("/microapps", {
+              method: "post",
+            })
+            .then((res) => res.json())
+            .catch((err) => {
+              console.error(err);
+            });
+        }
+
+        // 预请求资源，注意此种情况下不会执行 JS
+        // 注意 prefetch 和 preload 的区别
+        prefetchScript({ script }) {
+          // 温馨提示：这里可以做很多优化，例如缓存处理（这里可能需要服务端缓存支持）
+          // 方式一：在主应用初始化时先通过 new Image().src = script.script 的方式进行 JS 下载，再次请求时可以触发缓存获取 JS
+          // 方式二：在主应用初始化时先通过 fetch（需要支持跨域）请求并缓存 script 文本内容，然后在需要执行的时候通过 eval 来执行
+          // 方式三：通过 prefetch 在浏览器空闲时加载资源，prefetch 不会执行 js 文件
+          // 这里先采用方式三，可以配合 HTTP 缓存实现内存缓存，在后续的性能优化课程中细致讲解
+          // TODO: prefetch 浏览器支持检测
+          const $link = document.createElement("link");
+          $link.rel = "prefetch";
+          $link.as = "script";
+          $link.href = script;
+          document.head.appendChild($link);
+        }
+
+        // 请求 & 执行 JS（这里封装的不是很通用，可以考虑更加通用的封装处理）
+        loadScript({ script, id }) {
+          return new Promise((resolve, reject) => {
+            const $script = document.createElement("script");
+            $script.src = script;
+            $script.setAttribute("micro", id);
+            $script.onload = resolve;
+            $script.onerror = reject;
+            document.body.appendChild($script);
+          });
+        }
+
+        removeScript({ id }) {
+          // 寻找需要被移除的 script
+          const scripts = document.querySelectorAll(`[micro=${id}]`);
+          if (!scripts?.length) return;
+          scripts.forEach((script) => script.parentNode?.removeChild(script));
+        }
+      }
+
+      // 微应用管理
+      class MicroAppManager extends UtilsManager {
+        micrpApps = [];
+
+        constructor() {
+          super();
+          this.init();
+        }
+
+        init() {
+          this.hashChangeListener();
+          this.processMicroApps();
+          this.navClickListener();
+        }
+
+        hashChangeListener() {
+          // 监听 Hash 路由的变化，切换微应用
+          // 这里设定一个时刻只能切换一个微应用
+          window.addEventListener("hashchange", () => {
+            this.microApps?.forEach(async (microApp) => {
+              // 匹配需要激活的微应用
+              if (microApp.hash === window.location.hash) {
+                // 加载 Script 标签
+                microApp?.script && (await this.loadScript(microApp));
+                window?.[microApp.mount]?.("#micro-app-slot");
+                // 如果存在卸载 API 则进行应用卸载处理
+              } else {
+                window?.[microApp.unmount]?.("#micro-app-slot");
+                this.removeScript(microApp);
+                window?.[microApp.mount]?.("#micro-app-slot");
+              }
+            });
+          });
+        }
+
+        processMicroApps() {
+          this.getMicroApps().then((res) => {
+            this.microApps = res;
+            this.prefetchMicroAppScript();
+            this.createMicroAppNav();
+          });
+        }
+
+        prefetchMicroAppScript() {
+          this.microApps?.forEach(this.prefetchScript);
+        }
+
+        createMicroAppNav(microApps) {
+          const fragment = new DocumentFragment();
+          this.microApps?.forEach((microApp) => {
+            // TODO: APP 数据规范检测 (例如是否有 script、hash、mount、unmount 等）
+            const button = document.createElement("button");
+            button.textContent = microApp.name;
+            button.id = microApp.id;
+            fragment.appendChild(button);
+          });
+          nav.appendChild(fragment);
+        }
+
+        navClickListener() {
+          const nav = document.getElementById("nav");
+          nav.addEventListener("click", (e) => {
+            // 并不是只有 button 可以触发导航变更，例如 a 标签也可以，因此这里不直接处理微应用切换，只是改变 Hash 地址
+            // 不会触发刷新，类似于框架的 Hash 路由
+            window.location.hash = event?.target?.id;
+          });
+        }
+
+        unload() {
+          window.unload = () => {
+            // TODO: 监听事件去除处理
+          };
+        }
+      }
+
+      new MicroAppManager();
+    </script>
+  </body>
+</html>
