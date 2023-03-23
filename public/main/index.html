@@ -1,3 +1,5 @@
+<!-- public/main/index.html -->
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -23,7 +25,7 @@
       <div id="micro-app-slot"></div>
     </div>
 
-    <!-- 根据路由切换微应用 -->
+    <!-- 微应用工具类 -->
     <script type="text/javascript">
       class UtilsManager {
         constructor() {}
@@ -107,7 +109,10 @@
           return !!$style;
         }
       }
+    </script>
 
+    <!-- 根据路由切换微应用 -->
+    <script type="text/javascript">
       // 微应用管理
       class MicroAppManager extends UtilsManager {
         micrpApps = [];
