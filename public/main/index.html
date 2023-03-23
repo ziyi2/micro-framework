@@ -123,36 +123,9 @@
         }
 
         init() {
-          this.hashChangeListener();
           this.processMicroApps();
           this.navClickListener();
-        }
-
-        hashChangeListener() {
-          // 监听 Hash 路由的变化，切换微应用
-          // 这里设定一个时刻只能切换一个微应用
-          window.addEventListener("hashchange", () => {
-            this.microApps?.forEach(async (microApp) => {
-              // 匹配需要激活的微应用
-              if (microApp.id === window.location.hash.replace("#", "")) {
-                console.time(`fetch microapp ${microApp.name} static`);
-                // 加载 CSS 样式
-                microApp?.style &&
-                  !this.hasLoadStyle(microApp) &&
-                  (await this.loadStyle(microApp));
-                // 加载 Script 标签
-                microApp?.script &&
-                  !this.hasLoadScript(microApp) &&
-                  (await this.loadScript(microApp));
-                console.timeEnd(`fetch microapp ${microApp.name} static`);
-                window?.[microApp.mount]?.("#micro-app-slot");
-                // 如果存在卸载 API 则进行应用卸载处理
-              } else {
-                this.removeStyle(microApp);
-                window?.[microApp.unmount]?.();
-              }
-            });
-          });
+          this.hashChangeListener();
         }
 
         processMicroApps() {
@@ -191,6 +164,33 @@
             // 并不是只有 button 可以触发导航变更，例如 a 标签也可以，因此这里不直接处理微应用切换，只是改变 Hash 地址
             // 不会触发刷新，类似于框架的 Hash 路由
             window.location.hash = event?.target?.id;
+          });
+        }
+
+        hashChangeListener() {
+          // 监听 Hash 路由的变化，切换微应用
+          // 这里设定一个时刻只能切换一个微应用
+          window.addEventListener("hashchange", () => {
+            this.microApps?.forEach(async (microApp) => {
+              // 匹配需要激活的微应用
+              if (microApp.id === window.location.hash.replace("#", "")) {
+                console.time(`fetch microapp ${microApp.name} static`);
+                // 加载 CSS 样式
+                microApp?.style &&
+                  !this.hasLoadStyle(microApp) &&
+                  (await this.loadStyle(microApp));
+                // 加载 Script 标签
+                microApp?.script &&
+                  !this.hasLoadScript(microApp) &&
+                  (await this.loadScript(microApp));
+                console.timeEnd(`fetch microapp ${microApp.name} static`);
+                window?.[microApp.mount]?.("#micro-app-slot");
+                // 如果存在卸载 API 则进行应用卸载处理
+              } else {
+                this.removeStyle(microApp);
+                window?.[microApp.unmount]?.();
+              }
+            });
           });
         }
 
