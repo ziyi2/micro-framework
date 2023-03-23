@@ -8,6 +8,8 @@
     root.textContent = "微应用1";
     const $el = document.querySelector(el);
     $el?.appendChild(root);
+
+    
   };
 
   window.micro1_unmount = function () {
