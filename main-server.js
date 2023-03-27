@@ -18,22 +18,19 @@ app.post("/microapps", function (req, res) {
     {
       name: "micro1",
       id: "micro1",
+      // 自定义元素名称
+      customElement: 'micro-app-1',
       // 这里暂时以一个入口文件为示例
       script: `http://${host}:${port.micro}/micro1.js`,
       style: `http://${host}:${port.micro}/micro1.css`,
-      // 挂载到 window 上的启动函数 window.micro1_mount
-      mount: "micro1_mount",
-      // 挂载到 window 上的启动函数 window.micro1_unmount
-      unmount: "micro1_unmount",
       prefetch: true,
     },
     {
       name: "micro2",
       id: "micro2",
+      customElement: 'micro-app-2',
       script: `http://${host}:${port.micro}/micro2.js`,
       style: `http://${host}:${port.micro}/micro2.css`,
-      mount: "micro2_mount",
-      unmount: "micro2_unmount",
       prefetch: true,
     },
   ]);

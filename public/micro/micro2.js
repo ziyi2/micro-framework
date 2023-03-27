@@ -1,17 +1,46 @@
-// 立即执行的匿名函数可以防止变量 root 产生冲突
-(function () {
-  let root;
+// MDN: https://developer.mozilla.org/zh-CN/docs/Web/Web_Components
+// MDN: https://developer.mozilla.org/zh-CN/docs/Web/Web_Components/Using_custom_elements
+class MicroApp2Element extends HTMLElement {
+  constructor() {
+    super();
+  }
 
-  window.micro2_mount = function (el) {
-    // 以下其实可以是 React 框架或者 Vue 框架生成的 Document 元素，这里只是做一个简单的示例
-    root = document.createElement("h1");
-    root.textContent = "微应用2";
-    const $el = document.querySelector(el);
-    $el?.appendChild(root);
-  };
+  // [生命周期回调函数] 当 custom element 自定义标签首次被插入文档 DOM 时，被调用
+  // 类似于 React 中的  componentDidMount 周期函数
+  // 类似于 Vue 中的 mounted 周期函数
+  connectedCallback() {
+    console.log(`[micro-app-2]: 执行 connectedCallback 生命周期回调函数`);
+    // 挂载应用
+    // 相对比动态 Script，组件内部可以自动进行 mount 操作，不需要对外提供手动调用的 mount 函数，从而防止不必要的全局属性冲突
+    this.mount();
+  }
 
-  window.micro2_unmount = function () {
-    if (!root) return;
-    root.parentNode?.removeChild(root);
-  };
-})();
+  // [生命周期回调函数] 当 custom element 从文档 DOM 中删除时，被调用
+  // 类似于 React 中的  componentWillUnmount 周期函数
+  // 类似于 Vue 中的 destroyed 周期函数
+  disconnectedCallback() {
+    console.log(
+      `[micro-app-2]: 执行 disconnectedCallback 生命周期回调函数`
+    );
+    // 卸载处理
+    this.unmount();
+  }
+
+  mount() {
+    // MDN: https://developer.mozilla.org/zh-CN/docs/Web/API/Element/attachShadow
+    // 给当前自定义元素挂载一个 Shadow DOM
+    const $shadow = this.attachShadow({ mode: "open" });
+    const $micro = document.createElement("h1");
+    $micro.textContent = "微应用2";
+    // 将微应用的内容挂载到当前自定义元素的 Shadow DOM 下，从而与主应用进行 DOM 隔离
+    $shadow.appendChild($micro);
+  }
+
+  unmount() {
+
+  }
+}
+
+// MDN：https://developer.mozilla.org/zh-CN/docs/Web/API/CustomElementRegistry/define
+// 创建自定义元素，可以在浏览器中使用 <micro-app-2> 自定义标签
+window.customElements.define("micro-app-2", MicroApp2Element);

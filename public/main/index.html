@@ -15,22 +15,16 @@
   </head>
 
   <body>
-    <!-- 主应用的样式会被微应用覆盖 -->
     <h1>Hello，Dynamic Script!</h1>
-    <!-- 主导航设计，这里可以根据后端数据动态渲染导航 -->
     <div id="nav"></div>
-    <!-- 内容区设计 -->
     <div class="container">
-      <!-- 微应用渲染的插槽 -->
       <div id="micro-app-slot"></div>
     </div>
 
-    <!-- 微应用工具类 -->
     <script type="text/javascript">
       class UtilsManager {
         constructor() {}
 
-        // API 接口管理
         getMicroApps() {
           return window
             .fetch("/microapps", {
@@ -48,16 +42,7 @@
           return relList && relList.supports && relList.supports("prefetch");
         }
 
-        // 预请求资源，注意此种情况下不会执行 JS
-        // 注意 prefetch 和 preload 的区别
         prefetchStatic(href, as) {
-          // 温馨提示：这里可以做很多优化，例如缓存处理（这里可能需要服务端缓存支持）
-          // 方式一：在主应用初始化时先通过 new Image().src = script.script 的方式进行 JS 下载，再次请求时可以触发缓存获取 JS
-          // 方式二：在主应用初始化时先通过 fetch（需要支持跨域）请求并缓存 script 文本内容，然后在需要执行的时候通过 eval 来执行
-          // 方式三：通过 prefetch 在浏览器空闲时加载资源，prefetch 不会执行 js 和 css 文件
-          // 这里先采用方式三，可以配合 HTTP 缓存实现内存缓存，在后续的性能优化课程中细致讲解
-
-          // prefetch 浏览器支持检测
           if (!this.isSupportPrefetch()) {
             return;
           }
@@ -68,7 +53,6 @@
           document.head.appendChild($link);
         }
 
-        // 请求 & 执行 JS（这里封装的不是很通用，可以考虑更加通用的封装处理）
         loadScript({ script, id }) {
           return new Promise((resolve, reject) => {
             const $script = document.createElement("script");
@@ -88,12 +72,16 @@
             $style.rel = "stylesheet";
             $style.onload = resolve;
             $style.onerror = reject;
-            document.body.appendChild($style);
+            // 动态 Script 方案
+            // document.body.appendChild($style);
+
+            // Web Components 方案
+            const $webcomponent = document.querySelector(`[micro-id=${id}]`);
+            const $shadowRoot = $webcomponent?.shadowRoot;
+            $shadowRoot &&
+              $shadowRoot.insertBefore($style, $shadowRoot.firstChild);
           });
         }
-
-        // 为什么需要删除 CSS 样式？不删除会有什么后果吗？
-        // 为什么没有删除 JS 文件的逻辑呢？
         removeStyle({ id }) {
           const $style = document.querySelector(`[micro-style=${id}]`);
           $style && $style?.parentNode?.removeChild($style);
@@ -111,9 +99,7 @@
       }
     </script>
 
-    <!-- 根据路由切换微应用 -->
     <script type="text/javascript">
-      // 微应用管理
       class MicroAppManager extends UtilsManager {
         micrpApps = [];
 
@@ -149,7 +135,6 @@
         createMicroAppNav(microApps) {
           const fragment = new DocumentFragment();
           this.microApps?.forEach((microApp) => {
-            // TODO: APP 数据规范检测 (例如是否有 script、mount、unmount 等）
             const button = document.createElement("button");
             button.textContent = microApp.name;
             button.id = microApp.id;
@@ -161,34 +146,58 @@
         navClickListener() {
           const nav = document.getElementById("nav");
           nav.addEventListener("click", (e) => {
-            // 并不是只有 button 可以触发导航变更，例如 a 标签也可以，因此这里不直接处理微应用切换，只是改变 Hash 地址
-            // 不会触发刷新，类似于框架的 Hash 路由
             window.location.hash = event?.target?.id;
           });
         }
 
         hashChangeListener() {
-          // 监听 Hash 路由的变化，切换微应用
-          // 这里设定一个时刻只能切换一个微应用
+          // Web Components 方案
+          // 微应用的插槽
+          const $root = document.getElementById("micro-app-slot");
+
           window.addEventListener("hashchange", () => {
             this.microApps?.forEach(async (microApp) => {
-              // 匹配需要激活的微应用
+
+              // Web Components 方案
+              const $webcomponent = document.querySelector(
+                `[micro-id=${microApp.id}]`
+              );
+
               if (microApp.id === window.location.hash.replace("#", "")) {
-                console.time(`fetch microapp ${microApp.name} static`);
-                // 加载 CSS 样式
-                microApp?.style &&
-                  !this.hasLoadStyle(microApp) &&
-                  (await this.loadStyle(microApp));
-                // 加载 Script 标签
-                microApp?.script &&
-                  !this.hasLoadScript(microApp) &&
-                  (await this.loadScript(microApp));
-                console.timeEnd(`fetch microapp ${microApp.name} static`);
-                window?.[microApp.mount]?.("#micro-app-slot");
-                // 如果存在卸载 API 则进行应用卸载处理
+               
+                // Web Components 方案
+                if (!$webcomponent) {
+
+                  console.time(`fetch microapp ${microApp.name} static`);
+                  microApp?.script &&
+                    !this.hasLoadScript(microApp) &&
+                    (await this.loadScript(microApp));
+                  
+                  // 动态 Script 方案
+                  // window?.[microApp.mount]?.("#micro-app-slot");
+
+                  // Web Components 方案
+                  // 自定义元素的标签是微应用先定义出来的，然后在服务端的接口里通过 customElement 属性进行约定
+                  const $webcomponent = document.createElement(
+                    microApp.customElement
+                  );
+                  $webcomponent.setAttribute("micro-id", microApp.id);
+                  $root.appendChild($webcomponent);
+
+                  this.loadStyle(microApp);
+                  console.timeEnd(`fetch microapp ${microApp.name} static`);
+
+                } else {
+                  // Web Components 方案
+                  $webcomponent.style.display = "block";
+                }
               } else {
-                this.removeStyle(microApp);
-                window?.[microApp.unmount]?.();
+                // 动态 Script 方案
+                // this.removeStyle(microApp);
+                // window?.[microApp.unmount]?.();
+
+                // Web Components 方案
+                $webcomponent.style.display = "none";
               }
             });
           });
