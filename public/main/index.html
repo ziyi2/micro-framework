@@ -92,10 +92,11 @@
           return !!$script;
         }
 
-        hasLoadStyle({ id }) {
-          const $style = document.querySelector(`[micro-style=${id}]`);
-          return !!$style;
-        }
+        // 动态 Script 方案
+        // hasLoadStyle({ id }) {
+        //   const $style = document.querySelector(`[micro-style=${id}]`);
+        //   return !!$style;
+        // }
       }
     </script>
 
@@ -153,7 +154,7 @@
         hashChangeListener() {
           // Web Components 方案
           // 微应用的插槽
-          const $root = document.getElementById("micro-app-slot");
+          const $slot = document.getElementById("micro-app-slot");
 
           window.addEventListener("hashchange", () => {
             this.microApps?.forEach(async (microApp) => {
@@ -182,7 +183,7 @@
                     microApp.customElement
                   );
                   $webcomponent.setAttribute("micro-id", microApp.id);
-                  $root.appendChild($webcomponent);
+                  $slot.appendChild($webcomponent);
 
                   this.loadStyle(microApp);
                   console.timeEnd(`fetch microapp ${microApp.name} static`);
