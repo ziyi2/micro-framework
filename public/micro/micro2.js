@@ -27,13 +27,10 @@ class MicroApp2Element extends HTMLElement {
   }
 
   mount() {
-    // MDN: https://developer.mozilla.org/zh-CN/docs/Web/API/Element/attachShadow
-    // 给当前自定义元素挂载一个 Shadow DOM
-    const $shadow = this.attachShadow({ mode: "open" });
     const $micro = document.createElement("h1");
     $micro.textContent = "微应用2";
-    // 将微应用的内容挂载到当前自定义元素的 Shadow DOM 下，从而与主应用进行 DOM 隔离
-    $shadow.appendChild($micro);
+    // 将微应用的内容挂载到当前自定义元素下
+    this.appendChild($micro);
   }
 
   unmount() {
