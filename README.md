@@ -1,4 +1,4 @@
-# 动态 Script 示例
+# WebComponents 示例
 
 ``` bash
 # 启动主应用服务
