@@ -31,6 +31,20 @@ class MicroApp2Element extends HTMLElement {
     $micro.textContent = "微应用2";
     // 将微应用的内容挂载到当前自定义元素下
     this.appendChild($micro);
+
+    // 新增 Ajax 请求，用于请求 micro1.js 所在的服务
+    // 需要注意 micro1.js 动态加载在主应用 localhost:4000 下，因此请求是跨域的
+    window
+      .fetch("http://30.120.112.54:3000/cors", {
+        method: "post",
+      })
+      .then((res) => res.json())
+      .then(() => {
+        console.log(`[micro-app-2] cookie: `, document.cookie);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }
 
   unmount() {

@@ -9,6 +9,20 @@ const { port, host } = config;
 // 打印请求日志
 app.use(morgan("dev"));
 
+// 设置支持跨域请求头
+app.use((req, res, next) => {
+  // 跨域请求中涉及到 Cookie 信息传递，值不能为 *，必须是具体的地址信息
+  res.header('Access-Control-Allow-Origin', `http://${host}:${port.main}`);
+  res.header(
+    'Access-Control-Allow-Methods',
+    'GET, POST, OPTIONS'
+  );
+  res.header('Allow', 'GET, POST, OPTIONS');
+  // 允许客户端发送跨域请求时携带 Cookie
+  res.header('Access-Control-Allow-Credentials', true);
+  next();
+});
+
 app.use(
   express.static(path.join("public", "micro"), {
     // 缓存技术有很多种，包括 CDN 缓存、DNS 缓存、Nginx 缓存、代理缓存、服务端缓存和浏览器缓存...
