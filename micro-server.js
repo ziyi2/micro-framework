@@ -1,7 +1,7 @@
 // micro-server.js
 import express from "express";
 import morgan from "morgan";
-import path from 'path';
+import path from "path";
 import config from "./config.js";
 const app = express();
 const { port, host } = config;
@@ -21,6 +21,14 @@ app.use(
   })
 );
 
+app.post("/cors", function (req, res) {
+  // 设置一个响应的 Cookie 数据
+  res.cookie("micro-app", true);
+  res.json({
+    hello: "true",
+  });
+});
+
 // 启动 Node 服务
 app.listen(port.micro, host);
-console.log(`server start at http://${host}:${port.main}/`);
+console.log(`server start at http://${host}:${port.micro}/`);
