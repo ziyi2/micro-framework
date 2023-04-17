@@ -1,4 +1,5 @@
-// same-site-different-host/micro-server.js
+// same-site/micro-server.js
+// 微应用服务代码
 import path from "path";
 import express from "express";
 import ejs from "ejs";
@@ -8,7 +9,7 @@ const { host, port, __dirname } = config;
 const app = express();
 
 app.engine(".html", ejs.__express);
-app.set("views", path.join(__dirname, "views"));
+app.set("views", path.join(__dirname, "public"));
 app.set("view engine", "html");
 
 // 浏览器访问 http://${host}:${port.micro}/ 时会渲染 views/micro.html

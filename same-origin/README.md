@@ -3,6 +3,6 @@
 
 启动应用
 
-``` bash
-node same-origin-server.js
+```
+npm run same-origin
 ```

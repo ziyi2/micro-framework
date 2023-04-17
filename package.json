@@ -8,6 +8,11 @@
     "type": "git",
     "url": "git+https://github.com/ziyi2/micro-framework.git"
   },
+  "scripts": {
+    "same-origin": "node same-origin/main-server.js",
+    "same-site": "node same-site/main-server.js & node same-site/micro-server.js",
+    "cross-site": "node cross-site/main-server.js & node cross-site/micro-server.js"
+  },
   "author": "",
   "license": "ISC",
   "bugs": {
@@ -15,10 +20,10 @@
   },
   "homepage": "https://github.com/ziyi2/micro-framework#readme",
   "dependencies": {
-    "cookie-parser": "^1.4.6",
-    "ejs": "^3.1.8",
-    "express": "^4.18.2",
-    "ip": "^1.1.8",
+    "cookie-parser": "1.4.6",
+    "ejs": "3.1.8",
+    "express": "4.18.2",
+    "ip": "1.1.8",
     "ngrok": "4.3.3"
   },
   "engines": {

@@ -1,4 +1,5 @@
-// cross-site/main-ngrok-server.js
+// cross-site/main-server.js
+// 主应用服务代码
 import path from "path";
 import express from "express";
 import ngrok from "ngrok";
@@ -8,10 +9,20 @@ import config from "../config.js";
 const { port, host, authtoken, __dirname } = config;
 const app = express();
 
+// 内网穿透（主应用反向代理）
+const main = await ngrok.connect({
+  proto: "http",
+  // authtoken,
+  addr: `http://${host}:${port.main}`,
+  bind_tls: true,
+});
+
+console.log("main app ngrok url: ", main);
+
 // 内网穿透（微应用反向代理）
 const micro = await ngrok.connect({
   proto: "http",
-  authtoken,
+  // authtoken,
   addr: `http://${host}:${port.micro}`,
   // 更改为 https 协议
   bind_tls: true,
@@ -19,18 +30,8 @@ const micro = await ngrok.connect({
 
 console.log("micro app ngrok url: ", micro);
 
-// 内网穿透（主应用反向代理）
-const main = await ngrok.connect({
-  proto: "http",
-  authtoken,
-  addr: `http://${host}:${port.main}`,
-  bind_tls: true,
-});
-
-console.log("main app ngrok url: ", main);
-
 app.engine(".html", ejs.__express);
-app.set("views", path.join(__dirname, "views"));
+app.set("views", path.join(__dirname, "public"));
 app.set("view engine", "html");
 
 app.get("/", function (req, res) {

@@ -15,8 +15,5 @@ export default {
   // 获取本机的 IP 地址
   host: ip.address(),
 
-  // ngrok token
-  authtoken: "2J5cvQF7gP7fTjJ0YriGL7S8rNy_73xkPQpKSyAM5fa7KrdKn",
-
   __dirname
 };

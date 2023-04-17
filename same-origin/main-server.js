@@ -1,4 +1,4 @@
-// same-origin/same-origin-server.js
+// same-origin/main-server.js
 import path from "path";
 // express 的 github 地址：https://github.com/expressjs/express
 import express from "express";
@@ -11,13 +11,13 @@ const { port, host, __dirname } = config;
 const app = express();
 
 app.engine(".html", ejs.__express);
-app.set("views", path.join(__dirname, "views"));
+app.set("views", path.join(__dirname, "public"));
 app.set("view engine", "html");
 
 app.get("/", function (req, res) {
   // 设置主应用的 cookie 标识
   res.cookie("main-app", "true");
-  // 使用 ejs 模版引擎填充主应用 views/main.html 中的 micro 变量，并将其渲染到浏览器
+  // 使用 ejs 模版引擎填充主应用 public/main.html 中的 micro 变量，并将其渲染到浏览器
   res.render("main", {
     // micro 指向微应用的打开地址
     micro: `http://${host}:${port.main}/micro`,
