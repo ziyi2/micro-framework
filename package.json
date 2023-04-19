@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "module",
   "dependencies": {
+    "cookie-parser": "1.4.6",
     "express": "4.18.2",
     "ip": "1.1.8",
     "morgan": "1.10.0"
