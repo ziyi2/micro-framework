@@ -31,16 +31,16 @@ app.post("/microapps", function (req, res) {
       // 自定义元素名称
       customElement: "micro-app-1",
       // 这里暂时以一个入口文件为示例
-      script: `https://${host}:3001/micro1.js`,
-      style: `https://${host}:3001/micro1.css`,
+      script: `http://${host}:${port.micro}/micro1.js`,
+      style: `http://${host}:${port.micro}/micro1.css`,
       prefetch: true,
     },
     {
       name: "micro2",
       id: "micro2",
       customElement: "micro-app-2",
-      script: `https://${host}:3001/micro2.js`,
-      style: `https://${host}:3001/micro2.css`,
+      script: `http://${host}:${port.micro}/micro2.js`,
+      style: `http://${host}:${port.micro}/micro2.css`,
       prefetch: true,
     },
   ]);
