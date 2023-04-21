@@ -13,7 +13,7 @@ app.set("views", path.join(__dirname, "public"));
 app.set("view engine", "html");
 
 // 使用 iHosts 配置 example.com 指向本机的 ip 地址
-// 主应用访问地址：http://example.com:3000
+// 主应用访问地址：http://example.com:4000
 app.get("/", function (req, res) {
   res.cookie("main-app", "true");
   // 使子域的微应用可以共享 Cookie
@@ -23,7 +23,7 @@ app.get("/", function (req, res) {
   res.cookie("main-app-share", "true", { domain: "example.com" });
   res.render("main", {
     // 使用 iHosts 配置 ziyi.example.com 指向本机的 ip 地址
-    // 子应用访问地址： http://ziyi.example.com:4000
+    // 子应用访问地址： http://ziyi.example.com:3000
     micro: `http://ziyi.example.com:${port.micro}`,
   });
 });

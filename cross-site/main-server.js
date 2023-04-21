@@ -24,7 +24,7 @@ const micro = await ngrok.connect({
   proto: "http",
   // authtoken,
   addr: `http://${host}:${port.micro}`,
-  // 更改为 https 协议
+  // 使用 https 协议
   bind_tls: true,
 });
 

@@ -12,7 +12,7 @@ app.engine(".html", ejs.__express);
 app.set("views", path.join(__dirname, "public"));
 app.set("view engine", "html");
 
-// 浏览器访问 http://${host}:${port.micro}/ 时会渲染 views/micro.html
+// 浏览器访问 http://${host}:${port.micro}/ 时会渲染 public/micro.html
 // 端口不同，主应用和微应用跨域但是不跨站
 app.get("/", function (req, res) {
   // 设置 iframe 微应用的 cookie 标识，顺便观察能否覆盖主应用的 cookie 标识
