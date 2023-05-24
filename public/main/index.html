@@ -39,10 +39,6 @@
 
         createIframe() {
           const { rootElm, id, url } = this.options;
-          if (!rootElm) {
-            console.warn("沙箱没有设置可以挂载的根节点", this.options);
-            return;
-          }
           const iframe = window.document.createElement("iframe");
           // 创建一个空白的 iframe
           const attrs = {
@@ -71,7 +67,7 @@
 
         // 失活
         // INFO: JS 加载以后无法通过移除 Script 标签去除执行状态
-        // INFO: 因此这里不是指代失活 JS，如果是真正的失活需要销毁 iframe 后重新加载 Script
+        // INFO: 因此这里不是指代失活 JS，如果是真正想要失活 JS，需要销毁 iframe 后重新加载 Script
         inactive() {
           this.iframe.style.display = "none";
         }
@@ -93,7 +89,7 @@
         scriptText = "";
         // 隔离实例
         sandbox = null;
-        // 微应用挂在的根节点
+        // 微应用挂载的根节点
         rootElm = null;
 
         constructor(rootElm, app) {
