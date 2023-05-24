@@ -7,149 +7,209 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <style>
-      h1 {
-        color: red;
-      }
-    </style>
   </head>
 
   <body>
-    <!-- 主应用的样式会被微应用覆盖 -->
-    <h1>Hello，Dynamic Script!</h1>
-    <!-- 主导航设计，这里可以根据后端数据动态渲染导航 -->
+    <h1>Hello，Sandbox Script!</h1>
+
+    <!-- 主应用导航 -->
     <div id="nav"></div>
-    <!-- 内容区设计 -->
-    <div class="container">
-      <!-- 微应用渲染的插槽 -->
-      <div id="micro-app-slot"></div>
-    </div>
 
-    <!-- 微应用工具类 -->
+    <!-- 主应用内容区 -->
+    <div id="container"></div>
+
     <script type="text/javascript">
-      class UtilsManager {
-        constructor() {}
+      // 隔离类
+      class IframeSandbox {
+        // 沙箱配置信息
+        options = null;
+        // iframe 实例
+        iframe = null;
+        // iframe 的 Window 实例
+        iframeWindow = null;
+        // 是否执行过 JS
+        exec = false;
 
-        // API 接口管理
-        getMicroApps() {
-          return window
-            .fetch("/microapps", {
-              method: "post",
-            })
-            .then((res) => res.json())
-            .catch((err) => {
-              console.error(err);
-            });
+        constructor(options) {
+          this.options = options;
+          // 创建 iframe 时浏览器会创建新的全局执行上下文，用于隔离主应用的全局执行上下文
+          this.iframe = this.createIframe();
+          this.iframeWindow = this.iframe.contentWindow;
         }
 
-        isSupportPrefetch() {
-          const link = document.createElement("link");
-          const relList = link?.relList;
-          return relList && relList.supports && relList.supports("prefetch");
-        }
-
-        // 预请求资源，注意此种情况下不会执行 JS
-        // 注意 prefetch 和 preload 的区别
-        prefetchStatic(href, as) {
-          // 温馨提示：这里可以做很多优化，例如缓存处理（这里可能需要服务端缓存支持）
-          // 方式一：在主应用初始化时先通过 new Image().src = script.script 的方式进行 JS 下载，再次请求时可以触发缓存获取 JS
-          // 方式二：在主应用初始化时先通过 fetch（需要支持跨域）请求并缓存 script 文本内容，然后在需要执行的时候通过 eval 来执行
-          // 方式三：通过 prefetch 在浏览器空闲时加载资源，prefetch 不会执行 js 和 css 文件
-          // 这里先采用方式三，可以配合 HTTP 缓存实现内存缓存，在后续的性能优化课程中细致讲解
-
-          // prefetch 浏览器支持检测
-          if (!this.isSupportPrefetch()) {
+        createIframe() {
+          const { rootElm, id, url } = this.options;
+          if (!rootElm) {
+            console.warn("沙箱没有设置挂在的根节点", this.options);
             return;
           }
-          const $link = document.createElement("link");
-          $link.rel = "prefetch";
-          $link.as = as;
-          $link.href = href;
-          document.head.appendChild($link);
-        }
-
-        // 请求 & 执行 JS（这里封装的不是很通用，可以考虑更加通用的封装处理）
-        loadScript({ script, id }) {
-          return new Promise((resolve, reject) => {
-            const $script = document.createElement("script");
-            $script.src = script;
-            $script.setAttribute("micro-script", id);
-            $script.onload = resolve;
-            $script.onerror = reject;
-            document.body.appendChild($script);
+          const iframe = window.document.createElement("iframe");
+          // 创建一个空白的 iframe
+          const attrs = {
+            src: "about:blank",
+            "app-id": id,
+            "app-src": url,
+            style: "border:none",
+          };
+          Object.keys(attrs).forEach((name) => {
+            iframe.setAttribute(name, attrs[name]);
           });
+          rootElm?.appendChild(iframe);
+          return iframe;
         }
 
-        loadStyle({ style, id }) {
-          return new Promise((resolve, reject) => {
-            const $style = document.createElement("link");
-            $style.href = style;
-            $style.setAttribute("micro-style", id);
-            $style.rel = "stylesheet";
-            $style.onload = resolve;
-            $style.onerror = reject;
-            document.body.appendChild($style);
-          });
+        // 激活
+        active() {
+          this.iframe.style.display = "block";
+          // 如果已经通过 Script 加载并执行过 JS，则无需重新加载处理
+          if(this.exec) return;
+          this.exec = true;
+          const scriptElement = this.iframeWindow.document.createElement('script');
+          scriptElement.textContent = this.options.scriptText;
+          this.iframeWindow.document.head.appendChild(scriptElement);
         }
 
-        // 为什么需要删除 CSS 样式？不删除会有什么后果吗？
-        // 为什么没有删除 JS 文件的逻辑呢？
-        removeStyle({ id }) {
-          const $style = document.querySelector(`[micro-style=${id}]`);
-          $style && $style?.parentNode?.removeChild($style);
+        // 失活
+        // INFO: JS 加载以后无法通过移除 Script 标签去除执行状态
+        // INFO: 因此这里不是指代失活 JS，如果是真正的失活需要销毁 iframe 后重新加载 Script
+        inactive() {
+          this.iframe.style.display = "none";
         }
 
-        hasLoadScript({ id }) {
-          const $script = document.querySelector(`[micro-script=${id}]`);
-          return !!$script;
-        }
-
-        hasLoadStyle({ id }) {
-          const $style = document.querySelector(`[micro-style=${id}]`);
-          return !!$style;
+        // 销毁沙箱
+        destroy() {
+          this.options = null;
+          this.exec = false;
+          if(this.iframe) {
+            this.iframe.parentNode?.removeChild(this.iframe);
+          }
+          this.iframe = null;
         }
       }
-    </script>
 
-    <!-- 根据路由切换微应用 -->
-    <script type="text/javascript">
       // 微应用管理
-      class MicroAppManager extends UtilsManager {
-        micrpApps = [];
+      class MicroAppManager {
+        // 缓存微应用的脚本文本（这里假设只有一个执行脚本）
+        scriptText = "";
+        // 隔离实例
+        sandbox = null;
+        // 微应用挂在的根节点
+        rootElm = null;
+
+        constructor(rootElm, app) {
+          this.rootElm = rootElm;
+          this.app = app;
+        }
+
+        // 获取 JS 文本（微应用服务需要支持跨域请求）
+        async fetchScript(src) {
+          try {
+            const res = await window.fetch(src);
+            return await res.text();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+
+        // 激活
+        async active() {
+          // 缓存资源处理
+          if (!this.scriptText) {
+            this.scriptText = await this.fetchScript(this.app.script);
+          }
+
+          // 如果没有创建沙箱，则实时创建
+          // 需要注意只给激活的微应用创建 iframe 沙箱，因为创建 iframe 会产生内存损耗
+          if (!this.sandbox) {
+            this.sandbox = new IframeSandbox({
+              rootElm: this.rootElm,
+              scriptText: this.scriptText,
+              url: this.app.script,
+              id: this.app.id,
+            });
+          }
+
+          this.sandbox.active();
+        }
+
+        // 失活
+        inactive() {
+          this.sandbox?.inactive();
+        }
+      }
+
+      // 微前端管理
+      class MicroManager {
+        // 微应用实例映射表
+        appsMap = new Map();
+        // 微应用挂载的根节点信息
+        rootElm = null;
+
+        constructor(rootElm, apps) {
+          this.rootElm = rootElm;
+          this.setAppMaps(apps);
+        }
+
+        setAppMaps(apps) {
+          apps.forEach((app) => {
+            this.appsMap.set(app.id, new MicroAppManager(this.rootElm, app));
+          });
+        }
+
+        // TODO: prefetch 微应用
+        prefetchApps() {}
+
+        // 激活微应用
+        activeApp(id) {
+          const current = this.appsMap.get(id);
+          current && current.active();
+        }
+
+        // 失活微应用
+        inactiveApp(id) {
+          const current = this.appsMap.get(id);
+          current && current.inactive();
+        }
+      }
+
+      // 主应用管理
+      class MainApp {
+        microApps = [];
+        microManager = null;
 
         constructor() {
-          super();
           this.init();
         }
 
-        init() {
-          this.processMicroApps();
+        async init() {
+          this.microApps = await this.fetchMicroApps();
+          this.createNav();
           this.navClickListener();
           this.hashChangeListener();
-        }
-
-        processMicroApps() {
-          this.getMicroApps().then((res) => {
-            this.microApps = res;
-            this.prefetchMicroAppStatic();
-            this.createMicroAppNav();
-          });
-        }
-
-        prefetchMicroAppStatic() {
-          const prefetchMicroApps = this.microApps?.filter(
-            (microapp) => microapp.prefetch
+          // 创建微前端管理实例
+          this.microManager = new MicroManager(
+            document.getElementById("container"),
+            this.microApps
           );
-          prefetchMicroApps?.forEach((microApp) => {
-            microApp.script && this.prefetchStatic(microApp.script, "script");
-            microApp.style && this.prefetchStatic(microApp.style, "style");
-          });
         }
 
-        createMicroAppNav(microApps) {
+        // 从主应用服务器获请求微应用列表信息
+        async fetchMicroApps() {
+          try {
+            const res = await window.fetch("/microapps", {
+              method: "post",
+            });
+            return await res.json();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+
+        // 根据微应用列表创建主导航
+        createNav(microApps) {
           const fragment = new DocumentFragment();
           this.microApps?.forEach((microApp) => {
-            // TODO: APP 数据规范检测 (例如是否有 script、mount、unmount 等）
+            // TODO: APP 数据规范检测 (例如是否有 script）
             const button = document.createElement("button");
             button.textContent = microApp.name;
             button.id = microApp.id;
@@ -158,6 +218,7 @@
           nav.appendChild(fragment);
         }
 
+        // 导航点击的监听事件
         navClickListener() {
           const nav = document.getElementById("nav");
           nav.addEventListener("click", (e) => {
@@ -167,35 +228,20 @@
           });
         }
 
+        // hash 路由变化的监听事件
         hashChangeListener() {
-          // 监听 Hash 路由的变化，切换微应用
-          // 这里设定一个时刻只能切换一个微应用
+          // 监听 Hash 路由的变化，切换微应用（这里设定一个时刻只能切换一个微应用）
           window.addEventListener("hashchange", () => {
-            this.microApps?.forEach(async (microApp) => {
-              // 匹配需要激活的微应用
-              if (microApp.id === window.location.hash.replace("#", "")) {
-                console.time(`fetch microapp ${microApp.name} static`);
-                // 加载 CSS 样式
-                microApp?.style &&
-                  !this.hasLoadStyle(microApp) &&
-                  (await this.loadStyle(microApp));
-                // 加载 Script 标签
-                microApp?.script &&
-                  !this.hasLoadScript(microApp) &&
-                  (await this.loadScript(microApp));
-                console.timeEnd(`fetch microapp ${microApp.name} static`);
-                window?.[microApp.mount]?.("#micro-app-slot");
-                // 如果存在卸载 API 则进行应用卸载处理
-              } else {
-                this.removeStyle(microApp);
-                window?.[microApp.unmount]?.();
-              }
+            this.microApps?.forEach(async ({ id }) => {
+              id === window.location.hash.replace("#", "")
+                ? this.microManager.activeApp(id)
+                : this.microManager.inactiveApp(id);
             });
           });
         }
       }
 
-      new MicroAppManager();
+      new MainApp();
     </script>
   </body>
 </html>
