@@ -40,7 +40,7 @@
         createIframe() {
           const { rootElm, id, url } = this.options;
           if (!rootElm) {
-            console.warn("沙箱没有设置挂在的根节点", this.options);
+            console.warn("沙箱没有设置可以挂载的根节点", this.options);
             return;
           }
           const iframe = window.document.createElement("iframe");
