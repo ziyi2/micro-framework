@@ -11,10 +11,6 @@ lerna bootstrap
 # 进入子应用进行构建
 cd packages/vue-app
 npm run build
-cd packages/react-app
-npm run build
-
-# 进入主应用启动
-cd packages/main-app
-npm start
 ```
+
+将构建后的产物 `vue-app/dist/vue-app.umd.js` 放入 [iframe-sandbox-blank](https://github.com/ziyi2/micro-framework/tree/test/iframe-sandbox-blank) 分支的 `public/micro/micro1.js` 中进行测试。
