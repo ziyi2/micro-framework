@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import { createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import App from "./App.vue";
 import HelloFoo from "./HelloFoo.vue";
 import HelloBar from "./HelloBar.vue";
@@ -12,9 +12,9 @@ const routes = [
 
 const router = createRouter({
   // history 模式
-  // history: createWebHistory()
+  history: createWebHistory(),
   // hash 模式
-  history: createWebHashHistory(),
+  // history: createWebHashHistory(),
   routes,
 });
 
