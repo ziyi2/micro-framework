@@ -29,23 +29,39 @@
         iframeWindow = null;
         // 是否执行过 JS
         exec = false;
+        // iframe 加载延迟执行标识
+        iframeLoadDeferred = null;
 
         constructor(options) {
           this.options = options;
           // 创建 iframe 时浏览器会创建新的全局执行上下文，用于隔离主应用的全局执行上下文
           this.iframe = this.createIframe();
           this.iframeWindow = this.iframe.contentWindow;
+          this.iframeLoadDeferred = this.deferred();
+          this.iframeWindow.onload = () => {
+            // 用于等待 iframe 加载完成
+            this.iframeLoadDeferred.resolve();
+          };
+        }
+
+        deferred() {
+          const deferred = Object.create({});
+          deferred.promise = new Promise((resolve, reject) => {
+            deferred.resolve = resolve;
+            deferred.reject = reject;
+          });
+          return deferred;
         }
 
         createIframe() {
           const { rootElm, id, url } = this.options;
           const iframe = window.document.createElement("iframe");
-          // 创建一个空白的 iframe
           const attrs = {
-            src: "about:blank",
+            // 请求主应用服务下的 blank.html（保持和主应用同源）
+            src: "blank.html",
             "app-id": id,
             "app-src": url,
-            style: "border:none;width:100%;height:100%;",
+            style: "border:none",
           };
           Object.keys(attrs).forEach((name) => {
             iframe.setAttribute(name, attrs[name]);
@@ -55,12 +71,15 @@
         }
 
         // 激活
-        active() {
+        async active() {
           this.iframe.style.display = "block";
           // 如果已经通过 Script 加载并执行过 JS，则无需重新加载处理
-          if(this.exec) return;
+          if (this.exec) return;
+          // 延迟等待 iframe 加载完成（这里会有 HTML 请求的性能损耗，可以进行优化处理）
+          await this.iframeLoadDeferred.promise;
           this.exec = true;
-          const scriptElement = this.iframeWindow.document.createElement('script');
+          const scriptElement =
+            this.iframeWindow.document.createElement("script");
           scriptElement.textContent = this.options.scriptText;
           this.iframeWindow.document.head.appendChild(scriptElement);
         }
@@ -76,10 +95,11 @@
         destroy() {
           this.options = null;
           this.exec = false;
-          if(this.iframe) {
+          if (this.iframe) {
             this.iframe.parentNode?.removeChild(this.iframe);
           }
           this.iframe = null;
+          this.iframeWindow = null;
         }
       }
 
