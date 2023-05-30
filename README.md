@@ -1,4 +1,4 @@
-# iframe 空白隔离
+# iframe 同源隔离
 
 ``` bash
 # 启动主应用服务
