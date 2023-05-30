@@ -55,8 +55,8 @@
         createIframe() {
           const { rootElm, id, url } = this.options;
           const iframe = window.document.createElement("iframe");
-          // 创建一个空白的 iframe
           const attrs = {
+            // 请求主应用服务下的 blank.html（保持和主应用同源）
             src: "blank.html",
             "app-id": id,
             "app-src": url,
