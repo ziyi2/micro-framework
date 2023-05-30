@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Main App Document</title>
+    <title>Document</title>
   </head>
 
   <body>
@@ -20,7 +20,7 @@
 
     <script type="text/javascript">
       // 隔离类
-      class IframeSandbox {
+      class MicroAppSandbox {
         // 沙箱配置信息
         options = null;
         // iframe 实例
@@ -28,28 +28,13 @@
         // iframe 的 Window 实例
         iframeWindow = null;
         // 是否执行过 JS
-        execScriptFlag = false;
-        // iframe 加载延迟执行标识
-        iframeLoadDeferred = null;
+        exec = false;
 
         constructor(options) {
           this.options = options;
           // 创建 iframe 时浏览器会创建新的全局执行上下文，用于隔离主应用的全局执行上下文
           this.iframe = this.createIframe();
           this.iframeWindow = this.iframe.contentWindow;
-          this.iframeLoadDeferred = this.deferred();
-          this.iframeWindow.onload = () => {
-            this.iframeLoadDeferred.resolve();
-          };
-        }
-
-        deferred() {
-          const deferred = Object.create({});
-          deferred.promise = new Promise((resolve, reject) => {
-            deferred.resolve = resolve;
-            deferred.reject = reject;
-          });
-          return deferred;
         }
 
         createIframe() {
@@ -57,10 +42,10 @@
           const iframe = window.document.createElement("iframe");
           // 创建一个空白的 iframe
           const attrs = {
-            src: "blank.html",
+            src: "about:blank",
             "app-id": id,
             "app-src": url,
-            style: "border:none",
+            style: "border:none;width:100%;height:100%;",
           };
           Object.keys(attrs).forEach((name) => {
             iframe.setAttribute(name, attrs[name]);
@@ -70,17 +55,14 @@
         }
 
         // 激活
-        async active() {
+        active() {
           this.iframe.style.display = "block";
           // 如果已经通过 Script 加载并执行过 JS，则无需重新加载处理
-          if (this.execScriptFlag) return;
-          // 延迟等待 iframe 加载完成（这里会有 HTML 请求的性能损耗，可以进行优化处理）
-          await this.iframeLoadDeferred.promise;
-          const scriptElement =
-            this.iframeWindow.document.createElement("script");
+          if(this.exec) return;
+          this.exec = true;
+          const scriptElement = this.iframeWindow.document.createElement('script');
           scriptElement.textContent = this.options.scriptText;
           this.iframeWindow.document.head.appendChild(scriptElement);
-          this.execScriptFlag = true;
         }
 
         // 失活
@@ -94,7 +76,7 @@
         destroy() {
           this.options = null;
           this.exec = false;
-          if (this.iframe) {
+          if(this.iframe) {
             this.iframe.parentNode?.removeChild(this.iframe);
           }
           this.iframe = null;
@@ -102,7 +84,7 @@
       }
 
       // 微应用管理
-      class MicroAppManager {
+      class MicroApp {
         // 缓存微应用的脚本文本（这里假设只有一个执行脚本）
         scriptText = "";
         // 隔离实例
@@ -115,7 +97,7 @@
           this.app = app;
         }
 
-        // 获取 JS 文本（微应用服务需要支持跨域请求）
+        // 获取 JS 文本（微应用服务需要支持跨域请求获取 JS 文件）
         async fetchScript(src) {
           try {
             const res = await window.fetch(src);
@@ -135,7 +117,7 @@
           // 如果没有创建沙箱，则实时创建
           // 需要注意只给激活的微应用创建 iframe 沙箱，因为创建 iframe 会产生内存损耗
           if (!this.sandbox) {
-            this.sandbox = new IframeSandbox({
+            this.sandbox = new MicroAppSandbox({
               rootElm: this.rootElm,
               scriptText: this.scriptText,
               url: this.app.script,
@@ -153,7 +135,7 @@
       }
 
       // 微前端管理
-      class MicroManager {
+      class MicroApps {
         // 微应用实例映射表
         appsMap = new Map();
         // 微应用挂载的根节点信息
@@ -166,7 +148,7 @@
 
         setAppMaps(apps) {
           apps.forEach((app) => {
-            this.appsMap.set(app.id, new MicroAppManager(this.rootElm, app));
+            this.appsMap.set(app.id, new MicroApp(this.rootElm, app));
           });
         }
 
@@ -175,21 +157,21 @@
 
         // 激活微应用
         activeApp(id) {
-          const current = this.appsMap.get(id);
-          current && current.active();
+          const app = this.appsMap.get(id);
+          app?.active();
         }
 
         // 失活微应用
         inactiveApp(id) {
-          const current = this.appsMap.get(id);
-          current && current.inactive();
+          const app = this.appsMap.get(id);
+          app?.inactive();
         }
       }
 
       // 主应用管理
       class MainApp {
         microApps = [];
-        microManager = null;
+        microAppsManager = null;
 
         constructor() {
           this.init();
@@ -201,7 +183,7 @@
           this.navClickListener();
           this.hashChangeListener();
           // 创建微前端管理实例
-          this.microManager = new MicroManager(
+          this.microAppsManager = new MicroApps(
             document.getElementById("container"),
             this.microApps
           );
@@ -248,8 +230,8 @@
           window.addEventListener("hashchange", () => {
             this.microApps?.forEach(async ({ id }) => {
               id === window.location.hash.replace("#", "")
-                ? this.microManager.activeApp(id)
-                : this.microManager.inactiveApp(id);
+                ? this.microAppsManager.activeApp(id)
+                : this.microAppsManager.inactiveApp(id);
             });
           });
         }
