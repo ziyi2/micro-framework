@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Main App Document</title>
   </head>
 
   <body>
@@ -28,13 +28,28 @@
         // iframe 的 Window 实例
         iframeWindow = null;
         // 是否执行过 JS
-        exec = false;
+        execScriptFlag = false;
+        // iframe 加载延迟执行标识
+        iframeLoadDeferred = null;
 
         constructor(options) {
           this.options = options;
           // 创建 iframe 时浏览器会创建新的全局执行上下文，用于隔离主应用的全局执行上下文
           this.iframe = this.createIframe();
           this.iframeWindow = this.iframe.contentWindow;
+          this.iframeLoadDeferred = this.deferred();
+          this.iframeWindow.onload = () => {
+            this.iframeLoadDeferred.resolve();
+          };
+        }
+
+        deferred() {
+          const deferred = Object.create({});
+          deferred.promise = new Promise((resolve, reject) => {
+            deferred.resolve = resolve;
+            deferred.reject = reject;
+          });
+          return deferred;
         }
 
         createIframe() {
@@ -42,7 +57,7 @@
           const iframe = window.document.createElement("iframe");
           // 创建一个空白的 iframe
           const attrs = {
-            src: "about:blank",
+            src: "blank.html",
             "app-id": id,
             "app-src": url,
             style: "border:none",
@@ -55,14 +70,17 @@
         }
 
         // 激活
-        active() {
+        async active() {
           this.iframe.style.display = "block";
           // 如果已经通过 Script 加载并执行过 JS，则无需重新加载处理
-          if(this.exec) return;
-          this.exec = true;
-          const scriptElement = this.iframeWindow.document.createElement('script');
+          if (this.execScriptFlag) return;
+          // 延迟等待 iframe 加载完成（这里会有 HTML 请求的性能损耗，可以进行优化处理）
+          await this.iframeLoadDeferred.promise;
+          const scriptElement =
+            this.iframeWindow.document.createElement("script");
           scriptElement.textContent = this.options.scriptText;
           this.iframeWindow.document.head.appendChild(scriptElement);
+          this.execScriptFlag = true;
         }
 
         // 失活
@@ -76,7 +94,7 @@
         destroy() {
           this.options = null;
           this.exec = false;
-          if(this.iframe) {
+          if (this.iframe) {
             this.iframe.parentNode?.removeChild(this.iframe);
           }
           this.iframe = null;

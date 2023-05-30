@@ -19,12 +19,7 @@ function reqListener() {
   console.log(this.responseText);
 }
 
-
-// hash 可以正常工作
-window.location.hash = "micro2";
-window.addEventListener("hashchange", () => {
-  console.log(window.location.hash);
-});
+console.log(window.location);
 
 // history 报错
 window.history.pushState({ key: "hello" }, "", "/test");
