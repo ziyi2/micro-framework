@@ -11,13 +11,13 @@ document.body.appendChild(root);
 console.log(window.document.domain === window.parent.document.domain); // true
 
 // 可以请求主应用服务所在的接口
-var oReq = new XMLHttpRequest();
-oReq.addEventListener("load", reqListener);
-oReq.open("POST", "/microapps");
-oReq.send();
-function reqListener() {
-  console.log(this.responseText);
-}
+// var oReq = new XMLHttpRequest();
+// oReq.addEventListener("load", reqListener);
+// oReq.open("POST", "/microapps");
+// oReq.send();
+// function reqListener() {
+//   console.log(this.responseText);
+// }
 
 console.log(window.location);
 
