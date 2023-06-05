@@ -19,88 +19,98 @@
     <div id="container"></div>
 
     <script type="text/javascript">
-      // 隔离类
       class MicroAppSandbox {
         // 沙箱配置信息
         options = null;
-        // iframe 实例
-        iframe = null;
-        // iframe 的 Window 实例
-        iframeWindow = null;
         // 是否执行过 JS
         exec = false;
-        // iframe 加载延迟执行标识
-        iframeLoadDeferred = null;
+        // 微应用激活之前的主应用 window 快照
+        mainWindow = {};
+        // 微应用激活之后的 window 对象（用于理解）
+        microWindow = {};
+        // 微应用失活后和主应用的 window 快照存在差异的属性集合
+        diffPropsMap = {};
 
         constructor(options) {
           this.options = options;
-          // 创建 iframe 时浏览器会创建新的全局执行上下文，用于隔离主应用的全局执行上下文
-          this.iframe = this.createIframe();
-          this.iframeWindow = this.iframe.contentWindow;
-          this.iframeLoadDeferred = this.deferred();
-          this.iframeWindow.onload = () => {
-            // 用于等待 iframe 加载完成
-            this.iframeLoadDeferred.resolve();
-          };
+          // 重新包装需要执行的微应用 JS 脚本
+          this.wrapScript = this.createWrapScript();
         }
 
-        deferred() {
-          const deferred = Object.create({});
-          deferred.promise = new Promise((resolve, reject) => {
-            deferred.resolve = resolve;
-            deferred.reject = reject;
-          });
-          return deferred;
+        createWrapScript() {
+          // 微应用的代码运行在立即执行的匿名函数中，隔离作用域
+          return `;(function(){
+            ${this.options.scriptText}
+          })()`;
         }
 
-        createIframe() {
-          const { rootElm, id, url } = this.options;
-          const iframe = window.document.createElement("iframe");
-          const attrs = {
-            // 请求主应用服务下的 blank.html（保持和主应用同源）
-            src: "/blank",
-            "app-id": id,
-            "app-src": url,
-            style: "border:none;width:100%;height:100%;",
-          };
-          Object.keys(attrs).forEach((name) => {
-            iframe.setAttribute(name, attrs[name]);
-          });
-          rootElm?.appendChild(iframe);
-          return iframe;
+        execWrapScript() {
+          // 在全局作用域内执行微应用代码
+          (0, eval)(this.wrapScript);
         }
 
-        // 激活
-        async active() {
-          this.iframe.style.display = "block";
-          // 如果已经通过 Script 加载并执行过 JS，则无需重新加载处理
-          if (this.exec) return;
-          // 延迟等待 iframe 加载完成（这里会有 HTML 请求的性能损耗，可以进行优化处理）
-          await this.iframeLoadDeferred.promise;
-          this.exec = true;
-          const scriptElement =
-            this.iframeWindow.document.createElement("script");
-          scriptElement.textContent = this.options.scriptText;
-          this.iframeWindow.document.head.appendChild(scriptElement);
-        }
-
-        // 失活
-        // INFO: JS 加载以后无法通过移除 Script 标签去除执行状态
-        // INFO: 因此这里不是指代失活 JS，如果是真正想要失活 JS，需要销毁 iframe 后重新加载 Script
-        inactive() {
-          this.iframe.style.display = "none";
-        }
-
-        // 销毁沙箱
-        destroy() {
-          this.options = null;
-          this.exec = false;
-          if (this.iframe) {
-            this.iframe.parentNode?.removeChild(this.iframe);
+        // 微应用激活之前需要记录主应用的 window 快照（用于微应用失活后的属性差异对比）
+        recordMainWindow() {
+          for (const prop in window) {
+            if (window.hasOwnProperty(prop)) {
+              this.mainWindow[prop] = window[prop];
+            }
           }
-          this.iframe = null;
-          this.iframeWindow = null;
         }
+
+        // 微应用激活之前需要恢复微应用对应的 window 对象
+        recoverMicroWindow() {
+          // 如果微应用和主应用的 window 对象存在属性差异
+          // 微应用 window = 主应用 window + 差异属性（在微应用失活后会记录运行过程中涉及到更改的 window 属性值，再次激活时需要恢复之前修改的属性值）
+          Object.keys(this.diffPropsMap).forEach((p) => {
+            // 更改激活之前的微应用 window 对象，注意微应用本质上是共享主应用的 window 对象的，因此一个时刻只能运行一个微应用
+            window[p] = this.diffPropsMap[p];
+          });
+          // 用于课程理解
+          this.microWindow = window;
+        }
+
+        recordDiffPropsMap() {
+          // 这里的 microWindow 是微应用失活之后的 window（在微应用执行期间修改过 window 属性的 window）
+          for (const prop in this.microWindow) {
+            // 如果微应用运行期间存在和主应用不一样的属性值
+            if (
+              window.hasOwnProperty(prop) &&
+              this.microWindow[prop] !== this.mainWindow[prop]
+            ) {
+              // 记录微应用运行期间修改过的差异属性（下一次激活微应用时可用于恢复微应用的 window 属性）
+              this.diffPropsMap[prop] = this.microWindow[prop];
+              // 恢复主应用的 window 属性值
+              window[prop] = this.mainWindow[prop];
+            }
+          }
+        }
+
+        active() {
+          // 记录微应用执行之前的主应用 window 快照
+          this.recordMainWindow();
+          // 恢复微应用需要的 window 对象
+          this.recoverMicroWindow();
+          if (this.exec) {
+            return;
+          }
+          this.exec = true;
+          // 执行微应用
+          this.execWrapScript();
+        }
+
+        inactive() {
+          // 清空上一次记录的属性差异
+          this.diffPropsMap = {};
+          // 记录微应用运行后和主应用 Window 快照存在的差异属性
+          this.recordDiffPropsMap();
+          console.log(
+            `${this.options.appId} diffPropsMap: `,
+            this.diffPropsMap
+          );
+        }
+
+        destroy() {}
       }
 
       // 微应用管理
@@ -135,21 +145,28 @@
           }
 
           // 如果没有创建沙箱，则实时创建
-          // 需要注意只给激活的微应用创建 iframe 沙箱，因为创建 iframe 会产生内存损耗
           if (!this.sandbox) {
             this.sandbox = new MicroAppSandbox({
-              rootElm: this.rootElm,
               scriptText: this.scriptText,
-              url: this.app.script,
-              id: this.app.id,
+              appId: this.app.id,
             });
           }
 
           this.sandbox.active();
+
+          // 获取元素并进行展示，这里先临时约定微应用往 body 下新增 id 为 `${this.app.id}-dom` 的元素
+          const microElm = document.getElementById(`${this.app.id}-dom`);
+          if (microElm) {
+            microElm.style = "display: block";
+          }
         }
 
         // 失活
         inactive() {
+          const microElm = document.getElementById(`${this.app.id}-dom`);
+          if (microElm) {
+            microElm.style = "display: none";
+          }
           this.sandbox?.inactive();
         }
       }
@@ -238,6 +255,7 @@
         navClickListener() {
           const nav = document.getElementById("nav");
           nav.addEventListener("click", (e) => {
+            console.log("主应用 window.a: ", window.a);
             // 并不是只有 button 可以触发导航变更，例如 a 标签也可以，因此这里不直接处理微应用切换，只是改变 Hash 地址
             // 不会触发刷新，类似于框架的 Hash 路由
             window.location.hash = event?.target?.id;
@@ -248,11 +266,20 @@
         hashChangeListener() {
           // 监听 Hash 路由的变化，切换微应用（这里设定一个时刻只能切换一个微应用）
           window.addEventListener("hashchange", () => {
+
+            // 由于一个时刻只能激活一个应用，因此需要先失活已经激活的应用，才能进行其他应用的激活处理
             this.microApps?.forEach(async ({ id }) => {
-              id === window.location.hash.replace("#", "")
-                ? this.microAppsManager.activeApp(id)
-                : this.microAppsManager.inactiveApp(id);
+              if (id !== window.location.hash.replace("#", "")) {
+                this.microAppsManager.inactiveApp(id);
+              }
             });
+            // 激活应用
+            this.microApps?.forEach(async ({ id }) => {
+              if (id === window.location.hash.replace("#", "")) {
+                this.microAppsManager.activeApp(id);
+              }
+            });
+
           });
         }
       }
