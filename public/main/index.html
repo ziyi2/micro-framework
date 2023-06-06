@@ -39,9 +39,9 @@
 
         createWrapScript() {
           // 微应用的代码运行在立即执行的匿名函数中，隔离作用域
-          return `;(function(){
+          return `;(function(window){
             ${this.options.scriptText}
-          })()`;
+          })(window)`;
         }
 
         execWrapScript() {
