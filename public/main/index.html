@@ -78,7 +78,7 @@
               window.hasOwnProperty(prop) &&
               this.microWindow[prop] !== this.mainWindow[prop]
             ) {
-              // 记录微应用运行期间修改过的差异属性（下一次激活微应用时可用于恢复微应用的 window 属性）
+              // 记录微应用运行期间修改或者新增的差异属性（下一次激活微应用时可用于恢复微应用的 window 属性）
               this.diffPropsMap[prop] = this.microWindow[prop];
               // 恢复主应用的 window 属性值
               window[prop] = this.mainWindow[prop];
@@ -273,6 +273,10 @@
                 this.microAppsManager.inactiveApp(id);
               }
             });
+
+            // 没有应用被激活时，主应用的 window 对象会被恢复
+            console.log("恢复主应用的 window.a: ", window.a);
+
             // 激活应用
             this.microApps?.forEach(async ({ id }) => {
               if (id === window.location.hash.replace("#", "")) {

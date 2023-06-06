@@ -40,12 +40,6 @@ app.post("/microapps", function (req, res) {
 });
 
 
-app.get("/blank", function (req, res) {
-  // 这里可以是管理后台新增菜单后存储到数据库的数据
-  // 从而可以通过管理后台动态配置微应用的菜单
-  res.json();
-});
-
 // 启动 Node 服务
 app.listen(port.main, host);
 console.log(`server start at http://${host}:${port.main}/`);
