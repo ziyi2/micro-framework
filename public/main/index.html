@@ -24,9 +24,9 @@
         options = null;
         // 是否执行过 JS
         exec = false;
-        // 微应用激活之前的主应用 window 快照
+        // 微应用 JS 运行之前的主应用 window 快照
         mainWindow = {};
-        // 微应用激活之后的 window 对象（用于理解）
+        // 微应用 JS 运行之后的 window 对象（用于理解）
         microWindow = {};
         // 微应用失活后和主应用的 window 快照存在差异的属性集合
         diffPropsMap = {};
@@ -49,7 +49,7 @@
           (0, eval)(this.wrapScript);
         }
 
-        // 微应用激活之前需要记录主应用的 window 快照（用于微应用失活后的属性差异对比）
+        // 微应用 JS 运行之前需要记录主应用的 window 快照（用于微应用失活后的属性差异对比）
         recordMainWindow() {
           for (const prop in window) {
             if (window.hasOwnProperty(prop)) {
@@ -58,12 +58,12 @@
           }
         }
 
-        // 微应用激活之前需要恢复微应用对应的 window 对象
+        // 微应用 JS 运行之前需要恢复上一次微应用执行后的 window 对象
         recoverMicroWindow() {
           // 如果微应用和主应用的 window 对象存在属性差异
-          // 微应用 window = 主应用 window + 差异属性（在微应用失活后会记录运行过程中涉及到更改的 window 属性值，再次激活时需要恢复之前修改的属性值）
+          // 上一次微应用 window = 主应用 window + 差异属性（在微应用失活前会记录运行过程中涉及到更改的 window 属性值，再次运行之前需要恢复修改的属性值）
           Object.keys(this.diffPropsMap).forEach((p) => {
-            // 更改激活之前的微应用 window 对象，注意微应用本质上是共享主应用的 window 对象的，因此一个时刻只能运行一个微应用
+            // 更改 JS 运行之前的微应用 window 对象，注意微应用本质上共享了主应用的 window 对象，因此一个时刻只能运行一个微应用
             window[p] = this.diffPropsMap[p];
           });
           // 用于课程理解
@@ -71,14 +71,14 @@
         }
 
         recordDiffPropsMap() {
-          // 这里的 microWindow 是微应用失活之后的 window（在微应用执行期间修改过 window 属性的 window）
+          // 这里的 microWindow 是微应用失活之前的 window（在微应用执行期间修改过 window 属性的 window）
           for (const prop in this.microWindow) {
-            // 如果微应用运行期间存在和主应用不一样的属性值
+            // 如果微应用运行期间存在和主应用快照不一样的属性值
             if (
               window.hasOwnProperty(prop) &&
               this.microWindow[prop] !== this.mainWindow[prop]
             ) {
-              // 记录微应用运行期间修改或者新增的差异属性（下一次激活微应用时可用于恢复微应用的 window 属性）
+              // 记录微应用运行期间修改或者新增的差异属性（下一次运行微应用之前可用于恢复微应用这一次运行的 window 属性）
               this.diffPropsMap[prop] = this.microWindow[prop];
               // 恢复主应用的 window 属性值
               window[prop] = this.mainWindow[prop];
@@ -87,7 +87,7 @@
         }
 
         active() {
-          // 记录微应用执行之前的主应用 window 快照
+          // 记录微应用 JS 运行之前的主应用 window 快照
           this.recordMainWindow();
           // 恢复微应用需要的 window 对象
           this.recoverMicroWindow();
@@ -95,7 +95,7 @@
             return;
           }
           this.exec = true;
-          // 执行微应用
+          // 执行微应用（注意微应用的 JS 代码只需要被执行一次）
           this.execWrapScript();
         }
 
