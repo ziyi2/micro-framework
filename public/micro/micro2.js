@@ -1,14 +1,16 @@
-let root;
-// 以下其实可以是 React 框架或者 Vue 框架生成的 Document 元素，这里只是做一个简单的示例
-root = document.createElement("h1");
-root.textContent = "微应用2";
-// 约定往空的 iframe 的 body 下挂载微应用
+this.a = 1;
+console.log("微应用2 a: ", a);
+
+var b = 2;
+console.log("微应用2 b: ", window.b);
+
+window.c = 3;
+console.log("微应用2 c: ", window.c);
+
+let root = document.createElement("button");
+root.textContent = "微应用 2 更改 history 为 micro2";
 document.body.appendChild(root);
 
-this.a = 333;
-console.log('a: ', a);
-console.log('a: ', window.a);
-
-var b = 444;
-console.log('b: ', b);
-console.log('b: ', window.b);
+root.onclick = () => {
+  history.pushState({}, "", "/micro2");
+};
