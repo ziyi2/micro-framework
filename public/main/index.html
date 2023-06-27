@@ -29,35 +29,20 @@
         iframeWindow = null;
         // 是否执行过 JS
         execScriptFlag = false;
-        // iframe 加载延迟执行标识
-        iframeLoadDeferred = null;
 
         constructor(options) {
           this.options = options;
           // 创建 iframe 时浏览器会创建新的全局执行上下文，用于隔离主应用的全局执行上下文
           this.iframe = this.createIframe();
           this.iframeWindow = this.iframe.contentWindow;
-          this.iframeLoadDeferred = this.deferred();
-          this.iframeWindow.onload = () => {
-            this.iframeLoadDeferred.resolve();
-          };
-        }
-
-        deferred() {
-          const deferred = Object.create({});
-          deferred.promise = new Promise((resolve, reject) => {
-            deferred.resolve = resolve;
-            deferred.reject = reject;
-          });
-          return deferred;
+          this.proxyIframeWindow();
         }
 
         createIframe() {
           const { rootElm, id, url } = this.options;
           const iframe = window.document.createElement("iframe");
           const attrs = {
-            // 请求主应用服务下的 blank.html（保持和主应用同源）
-            src: "blank.html",
+            src: "about:blank",
             "app-id": id,
             "app-src": url,
             style: "border:none;width:100%;height:100%;",
@@ -69,17 +54,109 @@
           return iframe;
         }
 
+        isBoundedFunction(fn) {
+          return (
+            // 被绑定的函数本身没有 prototype
+            fn.name.indexOf("bound ") === 0 && !fn.hasOwnProperty("prototype")
+          );
+        }
+
+        isConstructable(fn) {
+          // 可以识别 Object、Array 等原生构造函数，也可以识别用户自己创建的构造函数
+          return (
+            fn.prototype &&
+            // 通常情况下构造函数和类的 prototype.constructor 指向本身
+            fn.prototype.constructor === fn &&
+            // 通常情况下构造函数和类都会存在 prototype.constructor，因此长度至少大于 1
+            // 需要注意普通函数中也会存在 prototype.constructor，
+            // 因此如果 prototype 有自定义属性或者方法，那么可以判定为类或者构造函数，因此这里的判断是大于 1
+            // 注意不要使用 Object.keys 进行判断，Object.keys 无法获取 Object.defineProperty 定义的属性
+            Object.getOwnPropertyNames(fn.prototype).length > 1
+          );
+          // TODO: 没有 constructor 的构造函数识别、class 识别、function Person() {} 识别等
+          // 例如 function Person {};  Person.prototype = {}; 此时没有 prototype.constructor 属性
+        }
+
+        // 修复 window.alert、window.addEventListener 等报错 Illegal invocation 的问题
+        // window.alert 内部的 this 不是指向 iframe 的 window，而是指向被代理后的 proxy，因此在调用 alert 等原生函数会报错 Illegal invocation
+        // 因此这里需要重新将这些原生 native api 的 this 修正为 iframe 的 window
+        getTargetValue(target, prop) {
+          const value = target[prop];
+
+          // 过滤出 window.alert、window.addEventListener 等 API
+          if (
+            typeof value === "function" &&
+            !this.isBoundedFunction(value) &&
+            !this.isConstructable(value)
+          ) {
+
+            console.log('修正 this: ', prop);
+
+            // 修正 value 的 this 指向为 target
+            const boundValue = Function.prototype.bind.call(value, target);
+            // 重新恢复 value 在 bound 之前的属性和原型（bind 之后会丢失）
+            for (const key in value) {
+              boundValue[key] = value[key];
+            }
+            // 如果原来的函数存在 prototype 属性，而 bound 之后丢失了，那么重新设置回来
+            if (
+              value.hasOwnProperty("prototype") &&
+              !boundValue.hasOwnProperty("prototype")
+            ) {
+              boundValue.prototype = value.prototye;
+            }
+            return boundValue;
+          }
+          return value;
+        }
+
+        proxyIframeWindow() {
+          this.iframeWindow.proxy = new Proxy(this.iframeWindow, {
+            get: (target, prop) => {
+              // console.log("get target prop: ", prop);
+
+              // TODO: 这里只是课程演示，主要用于解决 src:about:blank 下的 history 同域问题，并没有真正设计主子应用的路由冲突问题，后续的课程会进行该设计
+              // 思考：为了防止 URL 冲突问题，是否也可以形成设计规范，比如主应用采用 History 路由，子应用采用 Hash 路由，从而确保主子应用的路由不会产生冲突的问题
+              if (prop === "history" || prop === "location") {
+                return window[prop];
+              }
+
+              if (prop === "window" || prop === "self") {
+                return this.iframeWindow.proxy;
+              }
+
+              return this.getTargetValue(target, prop);
+            },
+
+            set: (target, prop, value) => {
+  
+              target[prop] = value;
+              return true;
+            },
+
+            has: (target, prop) => true,
+          });
+        }
+
+        execScript() {
+          const scriptElement =
+            this.iframeWindow.document.createElement("script");
+          scriptElement.textContent = `
+              (function(window) {
+                with(window) {
+                  ${this.options.scriptText}
+                }
+              }).bind(window.proxy)(window.proxy);
+              `;
+          this.iframeWindow.document.head.appendChild(scriptElement);
+        }
+
         // 激活
         async active() {
           this.iframe.style.display = "block";
           // 如果已经通过 Script 加载并执行过 JS，则无需重新加载处理
           if (this.execScriptFlag) return;
-          // 延迟等待 iframe 加载完成（这里会有 HTML 请求的性能损耗，可以进行优化处理）
-          await this.iframeLoadDeferred.promise;
-          const scriptElement =
-            this.iframeWindow.document.createElement("script");
-          scriptElement.textContent = this.options.scriptText;
-          this.iframeWindow.document.head.appendChild(scriptElement);
+          this.execScript();
           this.execScriptFlag = true;
         }
 
