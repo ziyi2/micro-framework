@@ -1,19 +1,34 @@
 <!-- main.html -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>站点隔离测试</title>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>通信测试</title>
+  </head>
+  <body>
     <h1>main 应用</h1>
-    <button onclick="javascript:window.open('<%= iframeUrl %>')">在新的标签页打开 iframe 应用</button>
-    <br>
-    <!-- 同站应用：iframe.html -->
-    <iframe src="<%= iframeUrl %>"></iframe>
-    <!-- 跨站应用: https://juejin.cn/ -->
-    <iframe src="https://juejin.cn"></iframe>
-</body>
+    <br />
+    <!-- 跨域应用：iframe.html -->
+    <iframe id="iframe" src="<%= iframeUrl %>"></iframe>
+
+    <script>
+      const iframe = document.getElementById("iframe");
+
+      iframe.onload = () => {
+        window.dispatchEvent(
+          new CustomEvent({
+            detail: "main",
+          })
+        );
+
+        iframe.contentWindow.dispatchEvent(
+          new CustomEvent({
+            detail: "iframe",
+          })
+        );
+      };
+    </script>
+  </body>
 </html>

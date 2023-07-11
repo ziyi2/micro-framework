@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "main-start": "node main-server.js",
-    "micro-start": "node micro-server.js"
+    "main": "node main-server.js",
+    "micro": "node micro-server.js"
   },
   "repository": {
     "type": "git",

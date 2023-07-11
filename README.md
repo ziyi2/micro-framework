@@ -1,7 +1,7 @@
-# 站点隔离测试
+# 跨站通信测试
 
 ``` bash
-node main-server.js
+npm run main
 # 打开新的终端执行
-node micro-server.js
+npm run micro
 ```
