@@ -89,8 +89,7 @@
             !this.isBoundedFunction(value) &&
             !this.isConstructable(value)
           ) {
-
-            console.log('修正 this: ', prop);
+            console.log("修正 this: ", prop);
 
             // 修正 value 的 this 指向为 target
             const boundValue = Function.prototype.bind.call(value, target);
@@ -129,7 +128,6 @@
             },
 
             set: (target, prop, value) => {
-  
               target[prop] = value;
               return true;
             },
@@ -333,6 +331,16 @@
       }
 
       new MainApp();
+
+      window.addEventListener("microChannel", (e) => {
+        console.log("main addEventListener: ", e);
+
+        window.dispatchEvent(
+          new CustomEvent("mainChannel", {
+            detail: "main",
+          })
+        );
+      });
     </script>
   </body>
 </html>
