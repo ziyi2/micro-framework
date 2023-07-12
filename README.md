@@ -3,5 +3,6 @@
 ``` bash
 npm run main
 # 打开新的终端执行
-npm run micro
+npm run micro1
+npm run micro2
 ```
