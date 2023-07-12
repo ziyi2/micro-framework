@@ -1,4 +1,4 @@
-# 跨站通信测试
+# 跨域通信测试
 
 ``` bash
 npm run main
