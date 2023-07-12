@@ -1,4 +1,4 @@
-// micro-server.js
+// micro2-server.js
 import path from 'path';
 import express from 'express';
 import ejs from "ejs";
