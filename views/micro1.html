@@ -1,0 +1,23 @@
+<!-- iframe.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>跨域的 iframe 应用</title>
+  </head>
+  <body>
+    <h1>跨域的 iframe 应用</h1>
+
+    <script>
+      window.addEventListener("message", (data) => {
+        console.log("micro1: ", data);
+
+        if (data.origin === "<%= mainUrl %>") {
+          window.parent.postMessage("micro1", "<%= mainUrl %>");
+        }
+      });
+    </script>
+  </body>
+</html>

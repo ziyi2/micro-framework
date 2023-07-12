@@ -12,9 +12,11 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "html");
 
 app.get("/", function (req, res) {
-  res.render("iframe");
+  res.render("micro2", {
+    mainUrl:  `http://${host}:${port.main}`
+  });
 });
 
 // 启动 Node 服务
-app.listen(port.micro, host);
-console.log(`server start at http://${host}:${port.micro}/`);
+app.listen(port.micro2, host);
+console.log(`server start at http://${host}:${port.micro2}/`);

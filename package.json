@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "main": "node main-server.js",
-    "micro": "node micro-server.js"
+    "micro1": "node micro1-server.js",
+    "micro2": "node micro2-server.js"
   },
   "repository": {
     "type": "git",

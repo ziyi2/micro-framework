@@ -11,13 +11,12 @@
     <h1>跨域的 iframe 应用</h1>
 
     <script>
-      window.parent.addEventListener('main', (e) => {
-        console.log('iframe addEventListener: ', e);
-      })
-
-      window.addEventListener('iframe', (e) => {
-        console.log('iframe addEventListener: ', e);
-      })
+      window.addEventListener("message", (data) => {
+        console.log("micro2: ", data);
+        if (data.origin === "<%= mainUrl %>") {
+          window.parent.postMessage("micro1", "<%= mainUrl %>");
+        }
+      });
     </script>
   </body>
 </html>

@@ -9,7 +9,8 @@ const __dirname = path.dirname(__filename);
 export default {
   port: {
     main: 4000,
-    micro: 3000,
+    micro1: 3000,
+    micro2: 2000
   },
 
   // 获取本机的 IP 地址

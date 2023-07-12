@@ -11,24 +11,33 @@
     <h1>main 应用</h1>
     <br />
     <!-- 跨域应用：iframe.html -->
-    <iframe id="iframe" src="<%= iframeUrl %>"></iframe>
+    <iframe id="micro1" src="<%= micro1 %>"></iframe>
+    <iframe id="micro2" src="<%= micro2 %>"></iframe>
 
     <script>
-      const iframe = document.getElementById("iframe");
+      const micro1 = document.getElementById("micro1");
+      const micro2 = document.getElementById("micro2");
 
-      iframe.onload = () => {
-        window.dispatchEvent(
-          new CustomEvent({
-            detail: "main",
-          })
-        );
-
-        iframe.contentWindow.dispatchEvent(
-          new CustomEvent({
-            detail: "iframe",
-          })
-        );
+      // 等待 iframe 加载完毕后才能通信
+      micro1.onload = () => {
+        // 给子应用发送消息，注意明确 targetOrigin
+        micro1.contentWindow.postMessage("main", "<%= micro1 %>");
       };
+
+      micro2.onload = () => {
+        micro2.contentWindow.postMessage("main", "<%= micro2 %>");
+      };
+
+      // 接收来自于 iframe 的消息
+      window.addEventListener("message", (data) => {
+        // 通过 data.origin 来进行应用过滤
+        if (
+          data.origin === "<%= micro1 %>" ||
+          data.origin === "<%= micro2 %>"
+        ) {
+          console.log("main: ", data);
+        }
+      });
     </script>
   </body>
 </html>
