@@ -47,7 +47,7 @@
           return new Promise((resolve, reject) => {
             const $script = document.createElement("script");
             $script.src = script;
-            $script.setAttribute("micro-script", id);
+            $script.setAttribute("micro-id", id);
             $script.onload = resolve;
             $script.onerror = reject;
             document.body.appendChild($script);
@@ -58,7 +58,7 @@
           return new Promise((resolve, reject) => {
             const $style = document.createElement("link");
             $style.href = style;
-            $style.setAttribute("micro-style", id);
+            $style.setAttribute("micro-id", id);
             $style.rel = "stylesheet";
             $style.onload = resolve;
             $style.onerror = reject;
@@ -99,16 +99,6 @@
           });
         }
 
-        prefetchMicroAppStatic() {
-          const prefetchMicroApps = this.microApps?.filter(
-            (microapp) => microapp.prefetch
-          );
-          prefetchMicroApps?.forEach((microApp) => {
-            microApp.script && this.prefetchStatic(microApp.script, "script");
-            microApp.style && this.prefetchStatic(microApp.style, "style");
-          });
-        }
-
         createMicroAppNav(microApps) {
           const fragment = new DocumentFragment();
           this.microApps?.forEach((microApp) => {
@@ -138,6 +128,7 @@
               // 匹配需要激活的微应用
               if (microApp.id === window.location.hash.replace("#", "")) {
                 console.time(`fetch microapp ${microApp.name} static`);
+                this.removeStatics(microApp);
                 // 加载 CSS 样式
                 microApp?.style && (await this.loadStyle(microApp));
                 // 加载 Script 标签
@@ -151,6 +142,15 @@
               }
             });
           });
+        }
+
+        removeStatics(microApp) {
+          const staticElements = document.querySelectorAll(
+            `[micro-id]`
+          );
+          staticElements.forEach((element) =>
+            element.parentNode.removeChild(element)
+          );
         }
       }
 
