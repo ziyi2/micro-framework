@@ -11,8 +11,10 @@ app.use(morgan("dev"));
 
 app.use(
   express.static(path.join("public", "micro"), {
-    // 禁用 cache-control，HTTP / 1.1 的缓存能力
-    cacheControl: false,
+    // 使用 cache-control，HTTP / 1.1 的缓存能力
+    cacheControl: true,
+    // 单位是 ms，这里设置 20s
+    maxAge: 20000,
     // 禁用协商缓存
     etag: false,
     lastModified: false,
