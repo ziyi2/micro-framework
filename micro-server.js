@@ -15,11 +15,10 @@ app.use(
     cacheControl: true,
     // 单位是 ms，这里设置 20s
     maxAge: 20000,
-    // 禁用协商缓存
     etag: false,
     lastModified: false,
     setHeaders: (res) => {
-      // 5 秒后强缓存失效，注意使用 GMT 格式时间
+      // 5 秒后缓存失效，注意使用 GMT 格式时间
       res.set("Expires", new Date(Date.now() + 5 * 1000).toGMTString());
     },
   })
