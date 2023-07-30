@@ -49,14 +49,8 @@
         }
 
         // 预请求资源，注意此种情况下不会执行 JS
-        // 注意 prefetch 和 preload 的区别
+        // 后续在性能优化的课程中还会讲解，暂时可以忽略
         prefetchStatic(href, as) {
-          // 温馨提示：这里可以做很多优化，例如缓存处理（这里可能需要服务端缓存支持）
-          // 方式一：在主应用初始化时先通过 new Image().src = script.script 的方式进行 JS 下载，再次请求时可以触发缓存获取 JS
-          // 方式二：在主应用初始化时先通过 fetch（需要支持跨域）请求并缓存 script 文本内容，然后在需要执行的时候通过 eval 来执行
-          // 方式三：通过 prefetch 在浏览器空闲时加载资源，prefetch 不会执行 js 和 css 文件
-          // 这里先采用方式三，可以配合 HTTP 缓存实现内存缓存，在后续的性能优化课程中细致讲解
-
           // prefetch 浏览器支持检测
           if (!this.isSupportPrefetch()) {
             return;
