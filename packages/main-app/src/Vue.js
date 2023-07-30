@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 const { mount, unmount } = require('vue-micro-app')
 
-const containerId = 'react-app';
+const containerId = 'vue-app';
 
 function VueApp() {
   useEffect(() => {
