@@ -11,7 +11,7 @@ class MicroApp2Element extends HTMLElement {
   connectedCallback() {
     console.log(`[micro-app-2]: 执行 connectedCallback 生命周期回调函数`);
     // 挂载应用
-    // 相对比动态 Script，组件内部可以自动进行 mount 操作，不需要对外提供手动调用的 mount 函数，从而防止不必要的全局属性冲突
+    // 相对动态 Script，组件内部可以自动进行 mount 操作，不需要对外提供手动调用的 mount 函数，从而防止不必要的全局属性冲突
     this.mount();
   }
 
