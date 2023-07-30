@@ -2,19 +2,21 @@
 
 
 ``` bash
-# 安装 Lerna 工具
-npm install --global lerna
+# 安装一来
+npm i
 
 # 依赖安装并链接微应用包
-lerna bootstrap
+npm run bootstrap
 
 # 进入子应用进行构建
 cd packages/vue-app
 npm run build
-cd packages/react-app
+cd ..
+cd react-app
 npm run build
 
 # 进入主应用启动
-cd packages/main-app
+cd ..
+cd main-app
 npm start
 ```
