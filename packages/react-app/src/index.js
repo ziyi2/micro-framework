@@ -6,9 +6,9 @@ import App from "./App";
 
 let root;
 
-export function mount() {
+export function mount(containerId) {
   console.log("react app mount");
-  root = ReactDOM.createRoot(document.getElementById("react-app"));
+  root = ReactDOM.createRoot(document.getElementById(containerId));
   root.render(
     <React.StrictMode>
       <App />

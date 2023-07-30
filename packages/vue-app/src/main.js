@@ -2,10 +2,10 @@ import { createApp } from "vue";
 import App from "./App.vue";
 let app;
 
-export function mount() {
+export function mount(containerId) {
   console.log("vue app mount");
   app = createApp(App);
-  app.mount("#vue-app");
+  app.mount(`#${containerId}`);
 }
 
 export function unmount() {
