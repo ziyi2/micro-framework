@@ -1,4 +1,4 @@
-# WebComponents 示例
+# Web Components Cookie 示例
 
 ``` bash
 # 安装依赖 
