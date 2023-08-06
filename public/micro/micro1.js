@@ -1,22 +1,30 @@
-this.a = 'a';
-console.log('微应用1 a: ', a);
-
-var b = 'b';
-console.log('微应用1 b: ', window.b);
-
-window.c = 'c';
-console.log('微应用1 c: ', window.c);
-
-let root = document.createElement("button");
-root.textContent = "微应用 1 更改 history 为 micro1";
+let root;
+root = document.createElement("h1");
+root.textContent = "微应用1";
 document.body.appendChild(root);
 
-root.onclick = () => {
-  history.pushState({}, '', '/micro1');
-}
+
+// 打开以下注释测试隔离
+// this.a = 'a';
+// console.log('微应用1 a: ', a);
+
+// var b = 'b';
+// console.log('微应用1 b: ', window.b);
+
+// window.c = 'c';
+// console.log('微应用1 c: ', window.c);
+
+// let root = document.createElement("button");
+// root.textContent = "微应用 1 更改 history 为 micro1";
+// document.body.appendChild(root);
+
+// root.onclick = () => {
+//   history.pushState({}, '', '/micro1');
+// }
+
+
 
 // 打开以下注释，执行 Vue 应用
-
 // (function webpackUniversalModuleDefinition(root, factory) {
 // 	if(typeof exports === 'object' && typeof module === 'object')
 // 		module.exports = factory();
