@@ -21,5 +21,4 @@ console.log(window.document.domain === window.parent.document.domain); // true
 
 console.log(window.location);
 
-// history 报错
 window.history.pushState({ key: "hello" }, "", "/test");
