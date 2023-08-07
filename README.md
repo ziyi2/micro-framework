@@ -1,4 +1,4 @@
-# 动态 Script 示例
+# 动态 Script 的 Expires 示例
 
 ``` bash
 # 安装依赖
