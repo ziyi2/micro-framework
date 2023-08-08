@@ -42,12 +42,32 @@
             });
         }
 
+        isSupportPrefetch() {
+          const link = document.createElement("link");
+          const relList = link?.relList;
+          return relList && relList.supports && relList.supports("prefetch");
+        }
+
+        // 预请求资源，注意此种情况下不会执行 JS
+        // 后续在性能优化的课程中还会讲解，暂时可以忽略
+        prefetchStatic(href, as) {
+          // prefetch 浏览器支持检测
+          if (!this.isSupportPrefetch()) {
+            return;
+          }
+          const $link = document.createElement("link");
+          $link.rel = "prefetch";
+          $link.as = as;
+          $link.href = href;
+          document.head.appendChild($link);
+        }
+
         // 请求 & 执行 JS（这里封装的不是很通用，可以考虑更加通用的封装处理）
         loadScript({ script, id }) {
           return new Promise((resolve, reject) => {
             const $script = document.createElement("script");
             $script.src = script;
-            $script.setAttribute("micro-id", id);
+            $script.setAttribute("micro-script", id);
             $script.onload = resolve;
             $script.onerror = reject;
             document.body.appendChild($script);
@@ -58,7 +78,7 @@
           return new Promise((resolve, reject) => {
             const $style = document.createElement("link");
             $style.href = style;
-            $style.setAttribute("micro-id", id);
+            $style.setAttribute("micro-style", id);
             $style.rel = "stylesheet";
             $style.onload = resolve;
             $style.onerror = reject;
@@ -71,6 +91,21 @@
         removeStyle({ id }) {
           const $style = document.querySelector(`[micro-style=${id}]`);
           $style && $style?.parentNode?.removeChild($style);
+        }
+
+        removeScript({id}) {
+          const $script = document.querySelector(`[micro-script=${id}]`);
+          $script && $script?.parentNode?.removeChild($script);
+        }
+
+        hasLoadScript({ id }) {
+          const $script = document.querySelector(`[micro-script=${id}]`);
+          return !!$script;
+        }
+
+        hasLoadStyle({ id }) {
+          const $style = document.querySelector(`[micro-style=${id}]`);
+          return !!$style;
         }
       }
     </script>
@@ -95,7 +130,18 @@
         processMicroApps() {
           this.getMicroApps().then((res) => {
             this.microApps = res;
+            this.prefetchMicroAppStatic();
             this.createMicroAppNav();
+          });
+        }
+
+        prefetchMicroAppStatic() {
+          const prefetchMicroApps = this.microApps?.filter(
+            (microapp) => microapp.prefetch
+          );
+          prefetchMicroApps?.forEach((microApp) => {
+            microApp.script && this.prefetchStatic(microApp.script, "script");
+            microApp.style && this.prefetchStatic(microApp.style, "style");
           });
         }
 
@@ -128,29 +174,24 @@
               // 匹配需要激活的微应用
               if (microApp.id === window.location.hash.replace("#", "")) {
                 console.time(`fetch microapp ${microApp.name} static`);
-                this.removeStatics(microApp);
                 // 加载 CSS 样式
-                microApp?.style && (await this.loadStyle(microApp));
+                // microApp?.style &&
+                //   !this.hasLoadStyle(microApp) &&
+                await this.loadStyle(microApp);
                 // 加载 Script 标签
-                microApp?.script && (await this.loadScript(microApp));
+                // microApp?.script &&
+                //   !this.hasLoadScript(microApp) &&
+                await this.loadScript(microApp);
                 console.timeEnd(`fetch microapp ${microApp.name} static`);
                 window?.[microApp.mount]?.("#micro-app-slot");
                 // 如果存在卸载 API 则进行应用卸载处理
               } else {
                 this.removeStyle(microApp);
+                this.removeScript(microApp);
                 window?.[microApp.unmount]?.();
               }
             });
           });
-        }
-
-        removeStatics(microApp) {
-          const staticElements = document.querySelectorAll(
-            `[micro-id]`
-          );
-          staticElements.forEach((element) =>
-            element.parentNode.removeChild(element)
-          );
         }
       }
 

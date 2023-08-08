@@ -11,13 +11,14 @@ app.use(morgan("dev"));
 
 app.use(
   express.static(path.join("public", "micro"), {
-    // 禁用 cache-control，HTTP / 1.1 的缓存能力
-    cacheControl: false,
-    etag: false,
+    cacheControl: true,
+    maxAge: 5000,
+    etag: true,
+    // 如果设置为 true，那么上述示例中访问拷贝的文件是返回 304 还是 200 呢？
     lastModified: false,
     setHeaders: (res) => {
-      // 5 秒后缓存失效，注意使用 GMT 格式时间
-      res.set("Expires", new Date(Date.now() + 5 * 1000).toGMTString());
+      // 1 秒后缓存失效，注意使用 GMT 格式时间
+      res.set("Expires", new Date(Date.now() + 1 * 1000).toGMTString());
     },
   })
 );
