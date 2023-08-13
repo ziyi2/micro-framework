@@ -1,6 +1,8 @@
 # iframe 空白隔离
 
 ``` bash
+# 安装依赖
+npm i
 # 启动主应用服务
 npm run main
 # 启动微应用服务
