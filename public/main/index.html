@@ -89,8 +89,7 @@
             !this.isBoundedFunction(value) &&
             !this.isConstructable(value)
           ) {
-
-            console.log('修正 this: ', prop);
+            console.log("修正 this: ", prop);
 
             // 修正 value 的 this 指向为 target
             const boundValue = Function.prototype.bind.call(value, target);
@@ -129,7 +128,6 @@
             },
 
             set: (target, prop, value) => {
-  
               target[prop] = value;
               return true;
             },
@@ -154,6 +152,15 @@
         // 激活
         async active() {
           this.iframe.style.display = "block";
+          // 如果已经通过 Script 加载并执行过 JS，则无需重新加载处理
+          if (this.execScriptFlag) return;
+          this.execScript();
+          this.execScriptFlag = true;
+        }
+
+        // 预渲染
+        prerender() {
+          this.iframe.style.display = "none";
           // 如果已经通过 Script 加载并执行过 JS，则无需重新加载处理
           if (this.execScriptFlag) return;
           this.execScript();
@@ -193,20 +200,47 @@
         }
 
         // 获取 JS 文本（微应用服务需要支持跨域请求）
-        async fetchScript(src) {
+        async fetchScript() {
           try {
-            const res = await window.fetch(src);
+            const res = await window.fetch(this.app.script);
             return await res.text();
           } catch (err) {
             console.error(err);
           }
         }
 
+        // 预渲染
+        rerender() {
+          // 当前主线程中存在多个并行执行的 requestIdleCallback 时，浏览器会根据空闲时间来决定要在当前 Frame 还是下一个 Frame 执行
+          requestIdleCallback(async () => {
+            // 预请求资源
+            this.scriptText = await this.fetchScript();
+            // 预渲染处理
+            this.idlePrerender();
+          });
+        }
+
+        idlePrerender() {
+          // 预渲染
+          requestIdleCallback((dealline) => {
+            console.log("deadline: ", dealline.timeRemaining());
+            // 这里只有在浏览器非常空闲时才可以进行操作
+            if (dealline.timeRemaining() > 40) {
+              // TODO: active 中还可以根据 Performance 性能面板进行再分析，如果内部的某些操作比较耗时，可能会影响下一帧的渲染，则可以放入新的 requestIdleCallback 中进行处理
+              // 出差之外，例如在子应用中可以先生成虚拟 DOM 树，预渲染不做 DOM 更改处理，真正切换应用的时候进行 DOM 挂载
+              // 也可以在挂载应用的时候放入 raF 中进行处理
+              this.active(true);
+            } else {
+              this.idlePrerender();
+            }
+          });
+        }
+
         // 激活
-        async active() {
+        async active(isPrerender) {
           // 缓存资源处理
           if (!this.scriptText) {
-            this.scriptText = await this.fetchScript(this.app.script);
+            this.scriptText = await this.fetchScript();
           }
 
           // 如果没有创建沙箱，则实时创建
@@ -220,7 +254,7 @@
             });
           }
 
-          this.sandbox.active();
+          isPrerender ? this.sandbox.prerender() : this.sandbox.active();
         }
 
         // 失活
@@ -238,17 +272,19 @@
 
         constructor(rootElm, apps) {
           this.rootElm = rootElm;
-          this.setAppMaps(apps);
+          // this.setAppMaps(apps);
+          this.initApps(apps);
         }
 
-        setAppMaps(apps) {
+        initApps(apps) {
           apps.forEach((app) => {
-            this.appsMap.set(app.id, new MicroAppManager(this.rootElm, app));
+            const appManager = new MicroAppManager(this.rootElm, app);
+            this.appsMap.set(app.id, appManager);
+            if (app.prerender) {
+              appManager.rerender();
+            }
           });
         }
-
-        // TODO: prefetch 微应用
-        prefetchApps() {}
 
         // 激活微应用
         activeApp(id) {
