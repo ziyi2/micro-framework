@@ -26,7 +26,7 @@ app.post("/microapps", function (req, res) {
       mount: "micro1_mount",
       // 挂载到 window 上的启动函数 window.micro1_unmount
       unmount: "micro1_unmount",
-      prerender: false,
+      prerender: true,
     },
     {
       name: "micro2",
@@ -35,7 +35,7 @@ app.post("/microapps", function (req, res) {
       style: `http://${host}:${port.micro}/micro2.css`,
       mount: "micro2_mount",
       unmount: "micro2_unmount",
-      prerender: false,
+      prerender: true,
     },
   ]);
 });
