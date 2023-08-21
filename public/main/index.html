@@ -227,7 +227,7 @@
             // 这里只有在浏览器非常空闲时才可以进行操作
             if (dealline.timeRemaining() > 40) {
               // TODO: active 中还可以根据 Performance 性能面板进行再分析，如果内部的某些操作比较耗时，可能会影响下一帧的渲染，则可以放入新的 requestIdleCallback 中进行处理
-              // 出差之外，例如在子应用中可以先生成虚拟 DOM 树，预渲染不做 DOM 更改处理，真正切换应用的时候进行 DOM 挂载
+              // 除此之外，例如在子应用中可以先生成虚拟 DOM 树，预渲染不做 DOM 更改处理，真正切换应用的时候进行 DOM 挂载
               // 也可以在挂载应用的时候放入 raF 中进行处理
               this.active(true);
             } else {
