@@ -9,6 +9,8 @@ npm i
 npm run release
 ```
 
+安装发布的库包：
+
 ``` bash
 # 使用 CommonJS
 npm i micro-framwork --save
