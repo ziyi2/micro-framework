@@ -48,10 +48,13 @@ class Release extends Base {
       "name",
       "version",
       "description",
+      "typings",
+      "types",
       "author",
       "license",
       "homepage",
       "dependencies",
+      "peerDependencies",
     ].forEach((key) => {
       releasePackageJson[key] = packageJson[key];
     });
