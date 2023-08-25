@@ -16,5 +16,9 @@ module.exports = {
   // 插件：提供 TypeScript 校验规则的实现
   plugins: ["@typescript-eslint"],
   // 层叠配置：停止向上遍历 ESLint 配置文件
-  root: true
+  root: true,
+  //  覆盖规则（优先级最高）
+  rules: {
+    '@typescript-eslint/ban-ts-comment': 'error'
+  }
 };
