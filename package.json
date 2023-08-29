@@ -8,10 +8,14 @@
     "build": "npm run lint && ts-node build/build.ts",
     "release": "npm run build && ts-node build/release.ts",
     "prepare": "husky install",
-    "test": "echo \"放弃 commit 提交\" && exit 2"
+    "test": "echo \"放弃 commit 提交\" && exit 2",
+    "cz": "git cz"
   },
   "config": {
-    "flat": true
+    "flat": true,
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   },
   "repository": {
     "type": "git",
@@ -35,6 +39,8 @@
     "@typescript-eslint/eslint-plugin": "5.54.1",
     "@typescript-eslint/parser": "5.54.1",
     "chalk": "4.1.2",
+    "commitizen": "4.3.0",
+    "cz-conventional-changelog": "^3.3.0",
     "eslint": "8.35.0",
     "eslint-config-prettier": "8.7.0",
     "fs-extra": "11.1.0",
