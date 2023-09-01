@@ -14,7 +14,7 @@
   "config": {
     "flat": true,
     "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
+      "path": "./node_modules/cz-customizable"
     }
   },
   "repository": {
@@ -40,7 +40,8 @@
     "@typescript-eslint/parser": "5.54.1",
     "chalk": "4.1.2",
     "commitizen": "4.3.0",
-    "cz-conventional-changelog": "^3.3.0",
+    "cz-conventional-changelog": "3.3.0",
+    "cz-customizable": "7.0.0",
     "eslint": "8.35.0",
     "eslint-config-prettier": "8.7.0",
     "fs-extra": "11.1.0",
