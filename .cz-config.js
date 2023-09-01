@@ -50,7 +50,7 @@ module.exports = {
     // used if allowCustomScopes is true
     customScope: "选择一个 scope:",
     subject: "短说明:\n",
-    body: '长说明，使用"|"换行(可选)：\n',
+    body: '长说明，使用"|"换行：\n',
     breaking: "非兼容性说明 (可选):\n",
     footer: "关联关闭的 issue，例如：#31, #34(可选):\n",
     confirmCommit: "确定提交说明?",
