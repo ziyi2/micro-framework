@@ -9,7 +9,8 @@
     "release": "npm run build && ts-node build/release.ts",
     "prepare": "husky install",
     "test": "echo \"放弃 commit 提交\" && exit 2",
-    "cz": "git cz"
+    "cz": "git cz",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
   },
   "config": {
     "flat": true,
@@ -43,6 +44,7 @@
     "chalk": "4.1.2",
     "commitizen": "4.3.0",
     "commitlint-config-cz": "0.13.3",
+    "conventional-changelog-cli": "4.0.0",
     "cz-conventional-changelog": "3.3.0",
     "cz-customizable": "7.0.0",
     "eslint": "8.35.0",
