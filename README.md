@@ -1,8 +1,8 @@
-# changelog
+# Jest 单元测试
 
 ``` bash
 # 安装依赖
 npm i
-# 修改代码后执行 cz
-npm run cz
+# 执行测试
+npm run test
 ```
