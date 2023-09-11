@@ -1,6 +1,7 @@
-import { core1 } from "./core1/core1";
+export function core(str: string) {
+  return `Hello ${str}`;
+}
 
-export function core() {
-  core1();
-  console.log("core");
+export function hello(str: string) {
+  return `Hello ${str}`;
 }
