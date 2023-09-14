@@ -64,12 +64,22 @@ class Release extends Base {
   async check() {
     const targets = this.getTargets();
     if (!targets?.length) return;
+    // 单元测试检查
+    this.checkUnitTest();
     // 发布分支检测
     await this.checkBranch();
     // 发布文件检测
     this.checkPublishFiles(targets);
     // 发布版本检测
     await this.checkLocalVersion(targets);
+  }
+
+  checkUnitTest() {
+    const result = shell.exec("npm run test");
+    if (result.code !== 0) {
+      this.logError(`[发布失败]: 单元测试失败！`);
+      process.exit(1);
+    }
   }
 
   // 发布分支检测

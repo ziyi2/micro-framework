@@ -18,8 +18,8 @@ export const targets = [
     dest: path.join(__dirname, "../lib/commonjs"),
     packagejson: {
       name: "ziyi-micro-framework",
-      main: "index.js"
-    }
+      main: "index.js",
+    },
   },
   {
     name: "build esmodule",
@@ -33,7 +33,7 @@ export const targets = [
       name: "ziyi-micro-framework-es",
       main: "index.js",
       module: "index.js",
-      "jsnext:main": "index.js"
+      "jsnext:main": "index.js",
     },
   },
 ];

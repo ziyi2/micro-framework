@@ -8,9 +8,10 @@
     "release": "npm run build && ts-node build/release.ts",
     "lint": "eslint --ext .ts src test",
     "prettier": "prettier src",
-    "test": "jest",
+    "test": "jest --bail",
     "cz": "git cz",
-    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
+    "prepublishOnly": "npm run test"
   },
   "config": {
     "flat": true,
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@commitlint/cli": "17.7.1",
     "@commitlint/config-conventional": "17.7.0",
+    "@types/find-root": "^1.1.2",
     "@types/fs-extra": "11.0.1",
     "@types/glob": "8.1.0",
     "@types/gulp": "4.0.10",
