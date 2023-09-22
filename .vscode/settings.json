@@ -9,5 +9,7 @@
   // 自动显示源文件的测试覆盖率百分比
   "jest.showCoverageOnLoad": true,
   // Jest 保存自动测试
-  "jest.autoRun": "on-save"
+  "jest.autoRun": "on-save",
+  "docthis.includeTypes": false,
+  "docthis.returnsTag": true
 }
