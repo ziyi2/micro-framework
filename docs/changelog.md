@@ -1,4 +1,4 @@
-## <small>1.0.6 (2023-09-19)</small>
+## <small>1.0.6 (2023-09-25)</small>
 
 * 工具(工程设计): .cz-config.js ([64b1641](https://github.com/ziyi2/micro-framework/commit/64b1641))
 * 工具(工程设计): commitlint ([be38c64](https://github.com/ziyi2/micro-framework/commit/be38c64))
@@ -9,6 +9,8 @@
 * 特性(工程设计): 新增 Jest 的 ESLint 配置 ([2356144](https://github.com/ziyi2/micro-framework/commit/2356144))
 * 特性(工程设计): 新增 Jest 的发布前检测处理 ([720b786](https://github.com/ziyi2/micro-framework/commit/720b786))
 * 特性(工程设计): 新增 Jest 的提交钩子,确保测试通过才能进行代码提交 ([c0fcac6](https://github.com/ziyi2/micro-framework/commit/c0fcac6))
+* 特性(工程设计): 新增 TypeDoc,用于自动生成 API 文档 ([7d701d9](https://github.com/ziyi2/micro-framework/commit/7d701d9))
+* 特性(工程设计): 新增 VuePress 文档站点生成器,用于快速生成框架的开发指南 ([06a9191](https://github.com/ziyi2/micro-framework/commit/06a9191))
 * 文档(工程设计): jest 运行说明 ([6f9b97d](https://github.com/ziyi2/micro-framework/commit/6f9b97d))
 * 文档(工程设计): rEADME.md ([ee25d33](https://github.com/ziyi2/micro-framework/commit/ee25d33))
 * feat(工程化): 新增 cz ([4af13e5](https://github.com/ziyi2/micro-framework/commit/4af13e5))

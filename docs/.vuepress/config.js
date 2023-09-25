@@ -1,6 +1,8 @@
 // 获取包描述信息
 const packageJson = require("../../package.json");
 
+console.log(__dirname);
+
 module.exports = {
   // 配置网站标题
   title: packageJson.name,
@@ -14,7 +16,7 @@ module.exports = {
     // 配置导航链接
     nav: [
       { text: "开发指南", link: "/guide/introduction" },
-      { text: "API", link: "/api/" },
+      { text: "API", link: "/api/modules" },
       { text: "变更日志", link: "/changelog.html" },
       // 导航还可以配置下拉列表, 例如不同的版本如果有不同的文档地址
       {

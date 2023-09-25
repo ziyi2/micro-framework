@@ -4,3 +4,4 @@ lib
 release.log
 coverage
 tsdoc
+docs/.vuepress/dist
