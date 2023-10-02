@@ -1,8 +1,7 @@
-# API 文档生成
+# Github Actions
 
-``` bash
-# 安装依赖
-npm i
-# 生成 API 文档
-npm run docs:api
+ci 的流程和解释如下所示：
+
+``` yml
+
 ```
