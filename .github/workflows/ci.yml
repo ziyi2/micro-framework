@@ -12,21 +12,13 @@ jobs:
       - name: 下载 Github 仓库
         uses: actions/checkout@v4
 
-      - name: 缓存 node_modules 依赖
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
       - name: 下载和安装 Node 环境
         uses: actions/setup-node@v3
         with:
           node-version: "16.x"
 
       - name: 安装依赖
-        run: npm install
+        run: npm ci
 
       - name: 单元测试
         run: npm test

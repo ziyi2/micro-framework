@@ -196,22 +196,23 @@ jobs:
       # env: 除了可以设置 workflow 以及 job 的 env，也可以设置 step 的 env（可以理解为作用域不同，局部作用域的优先级更高）
       #
       # comtinue-on-error: 默认当前 step 失败则会阻止当前 job 继续执行，设置 true 时当前 step 失败则可以跳过当前 job 的执行
-      - name: 缓存 node_modules 依赖
-        # cache action: https://github.com/actions/cache
-        # cache 在这里主要用于缓存 npm，提升构建速率
-        uses: actions/cache@v3
-        # npm 缓存的路径可查看 https://docs.npmjs.com/cli/cache#cache
-        # 由于这里 runs-on 是 ubuntu-latest，因此配置 ~/.npm
-        with:
-          # 指定缓存和还原的路径
-          path: ~/.npm
-          # key 中定义缓存标志，runner.os 指当前环境的系统。
-          # 这里使用 package-lock.json 的内容生成 Hash 值作为缓存的 key 值
-          # 一旦 package-lock.json 发生变化，则会导致 Hash 值变化，从而变更缓存内容
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          # 备用 key，如果 key 没有命中缓存，则可以使用 restore-keys 进行备用缓存匹配
-          restore-keys: |
-            ${{ runner.os }}-node-
+
+    #   - name: 缓存 node_modules 依赖
+    #     # cache action: https://github.com/actions/cache
+    #     # cache 在这里主要用于缓存 npm，提升构建速率
+    #     uses: actions/cache@v3
+    #     # npm 缓存的路径可查看 https://docs.npmjs.com/cli/cache#cache
+    #     # 由于这里 runs-on 是 ubuntu-latest，因此配置 ~/.npm
+    #     with:
+    #       # 指定缓存和还原的路径
+    #       path: ~/.npm
+    #       # key 中定义缓存标志，runner.os 指当前环境的系统。
+    #       # 这里使用 package-lock.json 的内容生成 Hash 值作为缓存的 key 值
+    #       # 一旦 package-lock.json 发生变化，则会导致 Hash 值变化，从而变更缓存内容
+    #       key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+    #       # 备用 key，如果 key 没有命中缓存，则可以使用 restore-keys 进行备用缓存匹配
+    #       restore-keys: |
+    #         ${{ runner.os }}-node-
 
       # github-script action: https://github.com/actions/github-script
       # 在 workflow 中使用 Script 语法调用 Github API 或引用 workflow context
@@ -239,7 +240,8 @@ jobs:
           node-version: "16.x"
 
       - name: 安装依赖
-        run: npm install
+        # 需要注意 npm ci 和 npm i 的区别
+        run: npm ci
 
       - name: 单元测试
         run: npm test
