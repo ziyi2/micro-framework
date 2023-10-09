@@ -33,7 +33,7 @@ core('ziyi');
 
 #### Defined in
 
-[core/core.ts:15](https://github.com/ziyi2/micro-framework/blob/7d701d9/src/core/core.ts#L15)
+[core/core.ts:15](https://github.com/ziyi2/micro-framework/blob/427c942/src/core/core.ts#L15)
 
 ___
 
@@ -70,4 +70,4 @@ hello('ziyi');
 
 #### Defined in
 
-[core/core.ts:35](https://github.com/ziyi2/micro-framework/blob/7d701d9/src/core/core.ts#L35)
+[core/core.ts:35](https://github.com/ziyi2/micro-framework/blob/427c942/src/core/core.ts#L35)

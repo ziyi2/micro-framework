@@ -33,6 +33,7 @@ on:
     branches:
       - demo/**
       - feat/**
+      - fix/**
     #
     # branches 的指定可以是通配符类型，例如以下配置可以匹配 refs/heads/releases/10
     # - 'releases/**'
@@ -243,8 +244,17 @@ jobs:
         # 需要注意 npm ci 和 npm i 的区别
         run: npm ci
 
+      - name: 代码校验
+        run: npm run lint
+
       - name: 单元测试
         run: npm test
+
+      - name: 文档构建
+        run: npm run docs:build
+
+      - name: 代码构建
+        run: npm run build
 
     #
     # timeout-minutes: 一个 job 执行的最大时间，默认是 6h，如果超过时间则取消执行

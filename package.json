@@ -4,7 +4,7 @@
   "description": "深入浅出微前端",
   "scripts": {
     "prepare": "husky install",
-    "build": "npm run lint && ts-node build/build.ts",
+    "build": "ts-node build/build.ts",
     "release": "npm run build && ts-node build/release.ts",
     "lint": "eslint --ext .ts src test",
     "prettier": "prettier src",
