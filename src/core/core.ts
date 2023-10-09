@@ -32,6 +32,6 @@ export function core(str: string): string {
  * hello('ziyi');
  * ```
  */
-export function hello(str) {
+export function hello(str: string) {
   return `Hello ${str}`;
 }
