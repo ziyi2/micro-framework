@@ -7,7 +7,7 @@ on:
       - fix/**
 jobs:
   test:
-    name: 单元测试
+    name: CI 执行流程
     runs-on: ubuntu-latest
     steps:
       - name: 下载 Github 仓库
