@@ -5,6 +5,11 @@ on:
       - demo/**
       - feat/**
       - fix/**
+
+  pull_request:
+    branches:
+      - master
+
 jobs:
   test:
     name: CI 执行流程
