@@ -12,7 +12,7 @@
  * core('ziyi');
  * ```
  */
-export function core(str: string): string {
+export function core(str): string {
   return `Hello ${str}`;
 }
 
