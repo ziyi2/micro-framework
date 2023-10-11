@@ -1,0 +1,37 @@
+name: cd
+on:
+  push:
+    branches:
+      - demo/**
+
+jobs:
+  test:
+    name: CD 执行流程
+    runs-on: ubuntu-latest
+    steps:
+      - name: 下载 Github 仓库
+        uses: actions/checkout@v4
+
+      - name: 下载和安装 Node 环境
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.x"
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 代码校验
+        run: npm run lint
+
+      - name: 单元测试
+        run: npm test
+
+      # 上传测试报告
+      - name: 测试报告
+        uses: coverallsapp/github-action@v2
+
+      - name: 文档构建
+        run: npm run docs:build
+
+      - name: 代码构建
+        run: npm run build
