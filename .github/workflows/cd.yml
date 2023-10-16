@@ -31,7 +31,23 @@ jobs:
         uses: coverallsapp/github-action@v2
 
       - name: 文档构建
-        run: npm run docs:build
+        run: npm run docs
+
+      # 部署文档
+      - name: 部署文档
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          # GTIHUB_TOKEN：https://docs.github.com/en/actions/configuring-and-managing-workflows/authenticating-with-the-github_token
+          # Github 会在 workflow 中自动生成 GIHUBT_TOKEN，用于认证 workflow 的运行
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # 执行 npm run docs 命令后默认会在该目录下生成静态资源
+          publish_dir: ./docs/.vuepress/dist
+          with:
+          # 默认发布到 gh-pages 分支上，可以指定特定的发布分支
+          # publish_branch: gh-pages1
+          # https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-set-custom-commit-message
+          # 设置上传到 gs-pages 分支的 commit 信息
+          full_commit_message: ${{ github.event.head_commit.message }}
 
       - name: 代码构建
         run: npm run build
