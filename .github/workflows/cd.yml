@@ -31,7 +31,7 @@ jobs:
         uses: coverallsapp/github-action@v2
 
       - name: 文档构建
-        run: npm run docs
+        run: npm run docs:build
 
       # 部署文档
       - name: 部署文档
