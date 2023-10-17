@@ -1,11 +1,11 @@
 {
   "name": "micro-framework",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "深入浅出微前端",
   "scripts": {
     "prepare": "husky install",
     "build": "ts-node build/build.ts",
-    "release": "npm run build && ts-node build/release.ts",
+    "release": "ts-node build/release.ts",
     "lint": "eslint --ext .ts src test",
     "prettier": "prettier src",
     "test": "jest --bail",
