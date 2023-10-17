@@ -4,6 +4,9 @@ on:
     branches:
       - demo/**
 
+env:
+  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
 jobs:
   test:
     name: CD 执行流程
@@ -16,6 +19,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "16.x"
+          registry-url: "https://registry.npmjs.org"
 
       - name: 安装依赖
         run: npm ci
@@ -55,5 +59,3 @@ jobs:
       # 基于构建的代码进行版本发布
       - name: 发布库包
         run: npm run release
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
