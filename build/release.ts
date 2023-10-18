@@ -185,6 +185,7 @@ class Release extends Base {
             result.stderr
           }`
         );
+        process.exit(1);
       }
     });
   }
