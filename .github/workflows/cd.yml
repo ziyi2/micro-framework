@@ -4,9 +4,6 @@ on:
     branches:
       - demo/**
 
-env:
-  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
 jobs:
   test:
     name: CD 执行流程
@@ -49,7 +46,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # 执行 npm run docs 命令后默认会在该目录下生成静态资源
           publish_dir: ./docs/.vuepress/dist
-          with:
           # 默认发布到 gh-pages 分支上，可以指定特定的发布分支
           # publish_branch: gh-pages1
           # https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-set-custom-commit-message
@@ -61,3 +57,5 @@ jobs:
         run: |
           cat $NPM_CONFIG_USERCONFIG
           npm run release
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
