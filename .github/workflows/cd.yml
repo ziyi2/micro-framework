@@ -4,6 +4,9 @@ on:
     branches:
       - demo/**
 
+env:
+  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
 jobs:
   test:
     name: CD 执行流程
@@ -53,9 +56,8 @@ jobs:
           full_commit_message: ${{ github.event.head_commit.message }}
 
       # 基于构建的代码进行版本发布
+      # cat $NPM_CONFIG_USERCONFIG 用于查看 CD 服务器上的 .npmrc 文件的内容
       - name: 发布库包
         run: |
           cat $NPM_CONFIG_USERCONFIG
           npm run release
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
