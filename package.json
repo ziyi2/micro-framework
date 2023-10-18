@@ -1,6 +1,6 @@
 {
   "name": "micro-framework",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "深入浅出微前端",
   "scripts": {
     "prepare": "husky install",
