@@ -16,7 +16,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "16.x"
-          # 一定要配置该参数，否则 cat $NPM_CONFIG_USERCONFIG 时会发现没有生成并设置 .npmrc 配置文件，从而会导致发布需要登录认证
+          # 一定要配置该参数，否则 cat $NPM_CONFIG_USERCONFIG 时会发现没有生成 .npmrc 配置文件，从而会导致发布需要登录认证而失败
           registry-url: "https://registry.npmjs.org"
 
       - name: 安装依赖
