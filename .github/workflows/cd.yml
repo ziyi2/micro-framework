@@ -58,4 +58,6 @@ jobs:
 
       # 基于构建的代码进行版本发布
       - name: 发布库包
-        run: npm run release
+        run: |
+          cat $NPM_CONFIG_USERCONFIG
+          npm run release
