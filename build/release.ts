@@ -5,7 +5,7 @@ import fetch from "node-fetch";
 import simpleGit from "simple-git";
 import path from "path";
 import { Base } from "./base";
-import { ITarget } from "./type";
+import { IPackageJson, ITarget } from "./type";
 
 class Release extends Base {
   constructor() {
@@ -19,6 +19,8 @@ class Release extends Base {
     await this.check();
     // 发布处理
     this.release();
+    // 打标签
+    this.tag();
   }
 
   // 在项目根目录下使用 package.json 进行 NPM 发布，项目的引入路径为 import xxx from 'micro-framwork/lib/commonjs/xxx'
@@ -43,7 +45,7 @@ class Release extends Base {
 
   filterPackageJson(target: ITarget) {
     const packageJson = this.getPackageJson();
-    const releasePackageJson: any = {};
+    const releasePackageJson: { [key: string]: unknown } = {};
     [
       "name",
       "version",
@@ -64,12 +66,22 @@ class Release extends Base {
   async check() {
     const targets = this.getTargets();
     if (!targets?.length) return;
+    // 单元测试检查
+    this.checkUnitTest();
     // 发布分支检测
     await this.checkBranch();
     // 发布文件检测
     this.checkPublishFiles(targets);
     // 发布版本检测
     await this.checkLocalVersion(targets);
+  }
+
+  checkUnitTest() {
+    const result = shell.exec("npm run test");
+    if (result.code !== 0) {
+      this.logError(`[发布失败]: 单元测试失败！`);
+      process.exit(1);
+    }
   }
 
   // 发布分支检测
@@ -123,7 +135,7 @@ class Release extends Base {
   // 检查远程发布的版本是否大于本地待发布的版本（防止先发布 1.0.3，后发布 1.0.2）
   async checkLocalVersion(targets: ITarget[]) {
     const packageJson = this.getPackageJson();
-    const localVersion = packageJson?.version;
+    const localVersion = packageJson?.version as string;
     if (!localVersion) {
       this.logError(
         `[发布失败]：请填写 ${path.join(
@@ -140,10 +152,12 @@ class Release extends Base {
         const res = await fetch(
           `http://registry.npmjs.org/${packageName}/latest`
         );
-        const remotePackage = await res.json();
-        if (semver.gte(remotePackage?.version, localVersion)) {
+        const remotePackage = (await res.json()) as IPackageJson;
+        if (semver.gte(remotePackage?.version as string, localVersion)) {
           this.logError(
-            `[发布失败]：当前 ${packageName} 需要发布的版本 ${localVersion} 小于等于已经发布的版本 ${remotePackage.version}！`
+            `[发布失败]：当前 ${packageName} 需要发布的版本 ${localVersion} 小于等于已经发布的版本 ${
+              remotePackage.version as string
+            }！`
           );
           process.exit(1);
         }
@@ -169,11 +183,26 @@ class Release extends Base {
           "release.log",
           `${new Date().toLocaleString()}：${
             target.packagejson.name
-          } 发布版本 ${packageJson.version} 失败！\n失败原因：${result.stderr}`
+          } 发布版本 ${packageJson?.version as string} 失败！\n失败原因：${
+            result.stderr
+          }`
         );
+        process.exit(1);
       }
     });
   }
+
+  tag() {
+    shell.cd(this.rootPath);
+    const packageJson = this.getPackageJson();
+    const version = packageJson?.version as string;
+    if (
+      shell.exec(`git tag ${version}`).code !== 0 ||
+      shell.exec(`git push origin ${version}`).code !== 0
+    ) {
+      process.exit(1);
+    }
+  }
 }
 
-new Release().run();
+void new Release().run();

@@ -1,0 +1,41 @@
+name: ci
+on:
+  push:
+    branches:
+      - demo/**
+      - feat/**
+      - fix/**
+
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: CI 执行流程
+    runs-on: ubuntu-latest
+    steps:
+      - name: 下载 Github 仓库
+        uses: actions/checkout@v4
+
+      - name: 下载和安装 Node 环境
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.x"
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 代码校验
+        run: npm run lint
+
+      # 如果希望强制校验 cz，则也可以增加 commit 规范的校验流程
+
+      - name: 单元测试
+        run: npm test
+
+      - name: 文档构建
+        run: npm run docs:build
+
+      - name: 代码构建
+        run: npm run build

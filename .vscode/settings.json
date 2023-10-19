@@ -1,0 +1,15 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
+  // 设置 Prettier 为 VS Code 的默认格式工具
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  // Prettier 保存自动格式化
+  "editor.formatOnSave": true,
+  // 自动显示源文件的测试覆盖率百分比
+  "jest.showCoverageOnLoad": true,
+  // Jest 保存自动测试
+  "jest.autoRun": "on-save",
+  "docthis.includeTypes": false,
+  "docthis.returnsTag": true
+}

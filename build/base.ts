@@ -5,7 +5,7 @@ import { targets } from "./config";
 import { IPackageJson, ITarget } from "./type";
 
 export class Base {
-  public rootPath: string = "";
+  public rootPath = "";
   public destPaths: string[] = [];
 
   constructor() {
@@ -24,8 +24,10 @@ export class Base {
     return process.env.npm_package_config_flat;
   }
 
-  getPackageJson(): IPackageJson {
-    return fs.readJSONSync(path.join(this.rootPath, "package.json"));
+  getPackageJson() {
+    return fs.readJSONSync(
+      path.join(this.rootPath, "package.json")
+    ) as IPackageJson;
   }
 
   logError(message: string) {

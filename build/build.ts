@@ -5,10 +5,6 @@ import glob from "glob";
 import { Base } from "./base";
 import { TargetTypeEnum } from "./type";
 
-// package.json 中的 config 参数
-// https://docs.npmjs.com/cli/v8/configuring-npm/package-json#config
-const flat = process.env.npm_package_config_flat;
-
 class Build extends Base {
   constructor() {
     super();

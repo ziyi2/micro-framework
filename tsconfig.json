@@ -37,10 +37,18 @@
     // 允许引入 .json 扩展的模块文件
     "resolveJsonModule": true,
     // 启动 decorators
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+
+    // 非相对模块导入的路径映射配置
+    // 例如在项目中使用 import core from '@/core/core' 等价于  import core from '../../src/core/core'
+    // 这里的 @ 可以方便的使应用在设计代码时忽略代码的层级目录深度，@ 指向 src 所在的目录位置
+    // https://www.tslang.cn/docs/handbook/module-resolution.html
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   // 编译器包含的文件列表，可以使用 glob 匹配模式
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "test/**/*", "build/**/*"],
   // 编译器排除的文件列表
   "exclude": ["node_modules"]
 }

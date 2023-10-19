@@ -1,0 +1,63 @@
+name: cd
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: CD 执行流程
+    runs-on: ubuntu-latest
+    steps:
+      - name: 下载 Github 仓库
+        uses: actions/checkout@v4
+
+      - name: 下载和安装 Node 环境
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.x"
+          # 一定要配置该参数，否则 cat $NPM_CONFIG_USERCONFIG 时会发现没有生成 .npmrc 配置文件，从而会导致发布需要登录认证而失败
+          registry-url: "https://registry.npmjs.org"
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 代码校验
+        run: npm run lint
+
+      - name: 单元测试
+        run: npm test
+
+      - name: 测试报告
+        uses: coverallsapp/github-action@v2
+
+      - name: 文档构建
+        run: npm run docs:build
+
+      # 如果代码构建失败，则不需要进行文档部署
+      - name: 代码构建
+        run: npm run build
+
+      # 部署文档
+      - name: 部署文档
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          # GTIHUB_TOKEN：https://docs.github.com/en/actions/configuring-and-managing-workflows/authenticating-with-the-github_token
+          # Github 会在 workflow 中自动生成 GIHUBT_TOKEN，用于认证 workflow 的运行
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # 执行 npm run docs 命令后默认会在该目录下生成静态资源
+          publish_dir: ./docs/.vuepress/dist
+          # 默认发布到 gh-pages 分支上，可以指定特定的发布分支
+          # publish_branch: gh-pages1
+          # https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-set-custom-commit-message
+          # 设置上传到 gs-pages 分支的 commit 信息
+          full_commit_message: ${{ github.event.head_commit.message }}
+
+      # 基于构建的代码进行版本发布
+      # cat $NPM_CONFIG_USERCONFIG 用于查看 CD 服务器上的 .npmrc 文件的内容
+      - name: 发布库包
+        run: |
+          cat $NPM_CONFIG_USERCONFIG
+          npm run release
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
