@@ -19,6 +19,8 @@ class Release extends Base {
     // await this.check();
     // 发布处理
     this.release();
+    // 打标签
+    this.tag();
   }
 
   // 在项目根目录下使用 package.json 进行 NPM 发布，项目的引入路径为 import xxx from 'micro-framwork/lib/commonjs/xxx'
@@ -188,6 +190,18 @@ class Release extends Base {
         process.exit(1);
       }
     });
+  }
+
+  tag() {
+    shell.cd(this.rootPath);
+    const packageJson = this.getPackageJson();
+    const version = packageJson?.version as string;
+    if (
+      shell.exec(`git tag ${version}`).code !== 0 ||
+      shell.exec(`git push origin ${version}`).code !== 0
+    ) {
+      process.exit(1);
+    }
   }
 }
 
