@@ -91,7 +91,7 @@ class Release extends Base {
   async checkBranch() {
     const git = simpleGit();
     const branch = await git.branchLocal();
-    if (!/^master$/.test(branch?.current)) {
+    if (!/^demo/.test(branch?.current)) {
       // 这里以 github 为例，进行打印说明
       this.logError(
         `[发布失败]: 发布分支只能为 master 分支，请切换发布分支并提交 Pull Request 和 Code Review 流程进行发布！`
