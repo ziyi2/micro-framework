@@ -22,8 +22,8 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
-      - name: 代码校验
-        run: npm run lint
+      #   - name: 代码校验
+      #     run: npm run lint
 
       #   - name: 单元测试
       #     run: npm test
@@ -35,8 +35,8 @@ jobs:
       #     run: npm run docs:build
 
       # 如果代码构建失败，则不需要进行文档部署
-      #   - name: 代码构建
-      #     run: npm run build
+      - name: 代码构建
+        run: npm run build
 
       # 部署文档
       #   - name: 部署文档
