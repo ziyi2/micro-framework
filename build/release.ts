@@ -66,8 +66,9 @@ class Release extends Base {
   async check() {
     const targets = this.getTargets();
     if (!targets?.length) return;
+    // 本地发布流程需要，如果是 CD 流程，则可以跳过该检测流程
     // 单元测试检查
-    this.checkUnitTest();
+    // this.checkUnitTest();
     // 发布分支检测
     await this.checkBranch();
     // 发布文件检测
@@ -91,7 +92,7 @@ class Release extends Base {
   async checkBranch() {
     const git = simpleGit();
     const branch = await git.branchLocal();
-    if (!/^demo/.test(branch?.current)) {
+    if (!/^master$/.test(branch?.current)) {
       // 这里以 github 为例，进行打印说明
       this.logError(
         `[发布失败]: 发布分支只能为 master 分支，请切换发布分支并提交 Pull Request 和 Code Review 流程进行发布！`

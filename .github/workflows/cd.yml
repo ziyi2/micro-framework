@@ -2,7 +2,7 @@ name: cd
 on:
   push:
     branches:
-      - demo/**
+      - master
 
 jobs:
   test:
