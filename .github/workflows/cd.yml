@@ -22,11 +22,11 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
-      #   - name: 代码校验
-      #     run: npm run lint
+      - name: 代码校验
+        run: npm run lint
 
-      #   - name: 单元测试
-      #     run: npm test
+      - name: 单元测试
+        run: npm test
 
       #   - name: 测试报告
       #     uses: coverallsapp/github-action@v2
