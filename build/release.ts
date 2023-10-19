@@ -100,6 +100,7 @@ class Release extends Base {
     }
     // 确保当前的 master 分支的文件没有变更
     const status = await git.status();
+    console.log("status: ", status);
     if (status?.files?.length) {
       this.logError("[发布失败]: 不允许更改本地 master 代码！");
       process.exit(1);
