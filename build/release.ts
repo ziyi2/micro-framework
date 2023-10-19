@@ -16,7 +16,7 @@ class Release extends Base {
     // 拷贝 README.md 并生成 package.json
     this.prepare();
     // 发布预检
-    // await this.check();
+    await this.check();
     // 发布处理
     this.release();
     // 打标签
