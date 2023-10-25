@@ -66,8 +66,9 @@ class Release extends Base {
   async check() {
     const targets = this.getTargets();
     if (!targets?.length) return;
+    // 本地发布流程需要，如果是 CD 流程，则可以跳过该检测流程
     // 单元测试检查
-    this.checkUnitTest();
+    // this.checkUnitTest();
     // 发布分支检测
     await this.checkBranch();
     // 发布文件检测
@@ -98,12 +99,14 @@ class Release extends Base {
       );
       process.exit(1);
     }
-    // 确保当前的 master 分支的文件没有变更
-    const status = await git.status();
-    if (status?.files?.length) {
-      this.logError("[发布失败]: 不允许更改本地 master 代码！");
-      process.exit(1);
-    }
+    // 确保当前的 master 分支的文件没有变更（CD 流程需要自动生成 API 文档信息，因此会产生变更，这里跳过检测）
+    // TODO:
+    // const status = await git.status();
+    // console.log("status: ", status);
+    // if (status?.files?.length) {
+    //   this.logError("[发布失败]: 不允许更改本地 master 代码！");
+    //   process.exit(1);
+    // }
     // 确保当前 master 分支的代码和远程代码一致（防止本地偷偷发布没有 Code Review 的代码）
     // 有没有其他方式可以比较本地 master 和远程 master 分支是一致的？
     const { stdout } = shell.exec("git diff origin/master master", {
