@@ -8,12 +8,13 @@
   <a href="https://www.npmjs.com/package/ziyi-micro-framework"><img alt="npm" src="https://img.shields.io/npm/v/ziyi-micro-framework"></a>
 </p>
 
-Micro Framework 是[《深入浅出微前端》](https://juejin.cn/book/7258893482318626868)小册衍生出来的一个微前端示例框架，该框架主要基于 iframe 进行隔离设计。
+Micro Framework 是[《深入浅出微前端》](https://juejin.cn/book/7258893482318626868)小册衍生出来的一个微前端示例框架。
 
 ## 特性
 
-- 基于 iframe 进行完整隔离
-- 提供预渲染能力
+- 基于 single-spa 进行封装
+- 基于 iframe 进行隔离设计
+- 提供 Loader 的扩展机制
 - ...
 
 ## 安装
