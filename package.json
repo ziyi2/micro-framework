@@ -6,7 +6,8 @@
     "submodules/*"
   ],
   "scripts": {
-    "bootstrap": "lerna bootstrap"
+    "bootstrap": "lerna bootstrap",
+    "build": "lerna run build --scope react-micro-app --scope vue-micro-app"
   },
   "devDependencies": {
     "lerna": "^6.3.0"

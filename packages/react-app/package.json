@@ -133,5 +133,6 @@
   },
   "eslintConfig": {
     "extends": "react-app"
-  }
+  },
+  "repository": "https://github.com/ziyi2/micro-framework.git"
 }
