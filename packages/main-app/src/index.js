@@ -21,6 +21,8 @@ registerMicroApps([
     // 详见 https://single-spa.js.org/docs/configuration/#activity-function
 
     // 重点可以分析一下 TypeScript 定义
+
+    // 这里可以先使用一下 require 试试，或者常规的 import 试试
     app: () => import("react-micro-app").then(res => getAppLifeCycles(res)),
 
     // activeWhen 参数可以是一个字符串，也可以是一个函数，还可以是一个数组
