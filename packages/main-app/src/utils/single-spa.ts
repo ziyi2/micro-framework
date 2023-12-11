@@ -1,4 +1,4 @@
-// 这里使用 npm link 进行连接调试
+// 注意这里直接引入了开发态的入口文件，而不是打包后的文件
 import { start, registerApplication } from "single-spa/src/single-spa";
 import { RegisterApplicationConfig } from "single-spa";
 
@@ -6,6 +6,7 @@ import { RegisterApplicationConfig } from "single-spa";
 export function registerMicroApps(apps: RegisterApplicationConfig[]) {
 
   // @ts-ignore
+  // 如果不开启 __DEV__，single-spa 无法正常运行
   window.__DEV__ = true;
 
   apps.forEach(registerApplication)

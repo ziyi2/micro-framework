@@ -4,7 +4,7 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { getApp, getAppLifeCycles, registerMicroApps } from "./utils/single-spa.ts";
+import { getAppLifeCycles, registerMicroApps } from "./utils/single-spa.ts";
 import { MICRO_APP_CONTAINER_ID, MICRO_APP_ROUTER } from "./utils/micros.ts";
 
 // single-spa 提供了两种调用方式：registerApplication({ name, app, activeWhen, customProps }) 和 registerApplication(name, app, activeWhen, customProps)

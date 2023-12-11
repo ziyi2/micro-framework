@@ -2,11 +2,11 @@
   "name": "root",
   "private": true,
   "workspaces": [
-    "packages/*",
-    "submodules/*"
+    "packages/*"
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",
+    "clean": "lerna clean",
     "build": "lerna run build --scope react-micro-app --scope vue-micro-app"
   },
   "devDependencies": {
