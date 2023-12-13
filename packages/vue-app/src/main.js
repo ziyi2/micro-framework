@@ -26,10 +26,3 @@ export function unmount(props) {
   console.log("[Vue 子应用] unmount excuted, props: ", props);
   app && app.unmount();
 }
-
-/**
- * 可选生命周期钩子
- */
-export function update(props) {
-  console.log("[Vue 子应用] update excuted, props: ", props);
-}

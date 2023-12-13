@@ -35,13 +35,6 @@ export function unmount(props) {
   root && root.unmount();
 }
 
-/**
- * 可选生命周期钩子
- */
-export async function update(props) {
-  console.log("[React 子应用] update excuted, props: ", props);
-}
-
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
