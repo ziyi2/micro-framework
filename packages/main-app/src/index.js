@@ -65,6 +65,14 @@ const router = createBrowserRouter([
     // children 中的元素会被渲染到 <App /> 的 <Outlet /> 中
     // <Outlet> 是 react-router-dom 提供的一个组件，用于渲染子路由：https://reactrouter.com/en/main/components/outlet
     children: [
+      // 如果有其它需要处理的路由，可以先前置处理，例如：
+      // {
+      //   path: '/aaa',
+      //   element: <div>111</div>,
+      // },
+
+      // 其它子路由都匹配成子应用的容器元素，注意也可以将注册 API 里的数据单独罗列出来，然后遍历生成路由
+      // 在真实的业务场景中，往往注册 API 里的数据和路由都是根据后端的数据动态生成的
       {
         path: '*',
         element: <div id={MICRO_APP_CONTAINER_ID}></div>,
