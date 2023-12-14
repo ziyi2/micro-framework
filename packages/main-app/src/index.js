@@ -5,7 +5,7 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { getAppLifeCycles, registerMicroApps } from "./utils/single-spa.ts";
-import { MICRO_APP_CONTAINER_ID, MICRO_APP_ROUTER } from "./utils/micros.ts";
+import { MICRO_APP_CONTAINER_ID, MICRO_APP_ROUTER } from "./utils/micros";
 
 // single-spa 提供了两种调用方式：registerApplication({ name, app, activeWhen, customProps }) 和 registerApplication(name, app, activeWhen, customProps)
 // 详见 https://single-spa.js.org/docs/configuration#registering-applications
@@ -37,7 +37,7 @@ registerMicroApps([
     customProps: {
       // 这里将元素的 id 传递给子应用，子应用可以通过 props 获取到，获取到后可以在子应用的 mount、unmount 生命周期中使用
       // 子应用可以将自己的内容渲染到这个元素中，从而实现子应用的渲染
-      container: MICRO_APP_CONTAINER_ID.REACT,
+      container: MICRO_APP_CONTAINER_ID,
     },
   },
   {
@@ -45,7 +45,7 @@ registerMicroApps([
     app: () => import("vue-micro-app").then(res => getAppLifeCycles(res)),
     activeWhen: MICRO_APP_ROUTER.VUE,
     customProps: {
-      container: MICRO_APP_CONTAINER_ID.VUE,
+      container: MICRO_APP_CONTAINER_ID,
     },
   },
 ]);
@@ -66,18 +66,9 @@ const router = createBrowserRouter([
     // <Outlet> 是 react-router-dom 提供的一个组件，用于渲染子路由：https://reactrouter.com/en/main/components/outlet
     children: [
       {
-        path: MICRO_APP_ROUTER.REACT,
-        element: <div id={MICRO_APP_CONTAINER_ID.REACT}></div>,
-      },
-      {
-        path: MICRO_APP_ROUTER.VUE,
-        element: (
-          <div
-            id={MICRO_APP_CONTAINER_ID.VUE}
-            style={{ textAlign: "center" }}
-          ></div>
-        ),
-      },
+        path: '*',
+        element: <div id={MICRO_APP_CONTAINER_ID}></div>,
+      }
     ],
   },
 ]);

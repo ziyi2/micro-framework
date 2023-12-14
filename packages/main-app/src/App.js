@@ -1,5 +1,6 @@
 import { Outlet, Link } from "react-router-dom";
 import "./App.css";
+import { MICRO_APP_ROUTER } from './utils/micros'
 
 function App() {
   return (
@@ -9,10 +10,10 @@ function App() {
         <nav>
           <ul>
             <li>
-              <Link to={'react'}>React Micro App</Link>
+              <Link to={MICRO_APP_ROUTER.REACT}>React Micro App</Link>
             </li>
             <li>
-              <Link to={'vue'}>Vue Micro App</Link>
+              <Link to={MICRO_APP_ROUTER.VUE}>Vue Micro App</Link>
             </li>
           </ul>
         </nav>
