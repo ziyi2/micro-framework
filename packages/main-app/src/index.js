@@ -16,6 +16,7 @@ registerMicroApps(
   mockMicroApps.map((item) => ({
     name: item.name,
     app: () => {
+      // import 无法使用变量，所以这里需要使用 if/else 判断
       if (item.router === MICRO_APP_ROUTER.REACT) {
         return import("react-micro-app").then((res) => getAppLifeCycles(res));
       } else if (item.router === MICRO_APP_ROUTER.VUE) {
