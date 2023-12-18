@@ -1,6 +1,6 @@
 import { Outlet, Link } from "react-router-dom";
 import "./App.css";
-import { MICRO_APP_ROUTER } from './utils/micros'
+import { MICRO_APP_ROUTER, mockMicroApps } from "./utils/micros";
 
 function App() {
   return (
@@ -9,12 +9,11 @@ function App() {
         <p>Micro App List</p>
         <nav>
           <ul>
-            <li>
-              <Link to={MICRO_APP_ROUTER.REACT}>React Micro App</Link>
-            </li>
-            <li>
-              <Link to={MICRO_APP_ROUTER.VUE}>Vue Micro App</Link>
-            </li>
+            {mockMicroApps.map((item) => (
+              <li key={item.name}>
+                <Link to={item.router}>{item.title}</Link>
+              </li>
+            ))}
           </ul>
         </nav>
       </div>
