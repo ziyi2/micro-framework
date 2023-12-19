@@ -1,6 +1,6 @@
 {
     "editor.codeActionsOnSave": {
-      "source.fixAll": true
+      "source.fixAll": "explicit"
     },
     // 设置 Prettier 为 VS Code 的默认格式工具
     "editor.defaultFormatter": "esbenp.prettier-vscode",
