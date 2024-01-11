@@ -24,6 +24,8 @@ if (!window.singleSpaNavigate) {
  * 除非会执行微应用的 unload 动作，然后需要再次执行 bootstrap，可能需要在此做一些必要的初始化动作
  * 注意这里的周期函数不是 async 函数，在主应用中引入该周期函数后需要进行 async 处理
  */
+
+// 注意这里的每一个生命周期函数必须是 async 函数
 export async function bootstrap() {
   console.log("[React 子应用] bootstrap excuted");
 }
