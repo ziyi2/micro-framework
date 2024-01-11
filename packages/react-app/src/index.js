@@ -24,14 +24,14 @@ if (!window.singleSpaNavigate) {
  * 除非会执行微应用的 unload 动作，然后需要再次执行 bootstrap，可能需要在此做一些必要的初始化动作
  * 注意这里的周期函数不是 async 函数，在主应用中引入该周期函数后需要进行 async 处理
  */
-export function bootstrap() {
+export async function bootstrap() {
   console.log("[React 子应用] bootstrap excuted");
 }
 
 /**
  * 微应用每次激活时都会调用 mount 周期函数，通常在这里执行微应用的渲染
  */
-export function mount(props) {
+export async function mount(props) {
   console.log("[React 子应用] mount excuted, props: ", props);
   // 在 single-spa 的注册 API 中会通过 customProps 传递 container 微应用容器元素 ID
   // 因此这里将微应用挂载在主应用的容器元素上
@@ -46,7 +46,7 @@ export function mount(props) {
 /**
  * 微应用每次失活时会调用 unmount 周期函数，通常在这里执行微应用的卸载
  */
-export function unmount(props) {
+export async function unmount(props) {
   console.log("[React 子应用] unmount excuted, props: ", props);
   root && root.unmount();
 }
