@@ -13,4 +13,4 @@ app.use(express.static(path.join("public", "micro")));
 
 // 启动 Node 服务
 app.listen(port.micro, host);
-console.log(`server start at http://${host}:${port.main}/`);
+console.log(`server start at http://${host}:${port.micro}/`);
