@@ -15,7 +15,7 @@ npm run bootstrap
 npm run build
 
 # 进入主应用启动
-cd ..
+cd packages
 cd main-app
 npm start
 ```
