@@ -2,6 +2,7 @@
 // 注意这里直接引入了开发态的入口文件，而不是打包后的文件
 import { start, registerApplication } from "single-spa/src/single-spa";
 import { RegisterApplicationConfig } from "single-spa";
+import {} from "lifecycle-sdk";
 
 // 对 single-spa 的 registerApplication 进行二次封装，使其可以接收一个数组，批量注册微应用
 export function registerMicroApps(apps: RegisterApplicationConfig[]) {

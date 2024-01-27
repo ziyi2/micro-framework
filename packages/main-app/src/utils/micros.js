@@ -14,15 +14,14 @@ export const mockMicroApps = [
     name: "react",
     // 菜单名称
     title: "React Micro App",
-    // NPM 包名称
-    app: "react-micro-app",
+    app: "http://localhost:3000/main.js",
     // 激活路由
     router: MICRO_APP_ROUTER.REACT,
   },
   {
     name: "vue",
     title: "Vue Micro App",
-    app: "vue-micro-app",
+    app: "http://192.168.31.168:8080/js/app.js",
     router: MICRO_APP_ROUTER.VUE,
   },
 ];

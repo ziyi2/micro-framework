@@ -17,18 +17,7 @@ registerMicroApps(
   mockMicroApps.map((item) => ({
     name: item.name,
     app: () => {
-      // import 无法使用变量，所以这里需要使用 if/else 判断进行硬编码
-      if (item.router === MICRO_APP_ROUTER.REACT) {
-        // 按需动态加载微应用的 NPM 包（Webpack 会进行 chunk 分离）
-
-        // 注意 app 参数需要返回的是 Promise 对象
-        // 这里可以重点再回顾一下注册微应用 API 的参数声明
-        // 1、app 本身如果是函数，那么必须是 async 函数（需要返回 Promise 对象）
-        // 2、Promise.resolve 需要返回生命周期函数对象，每一个生命周期函数也必须是 async 函数
-        return import("react-micro-app");
-      } else if (item.router === MICRO_APP_ROUTER.VUE) {
-        return import("vue-micro-app");
-      }
+      // 通过动态 Script 的方式获取
     },
     activeWhen: item.router,
     customProps: {
