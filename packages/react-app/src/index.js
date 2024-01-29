@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { registerMicroAppLifecycle } from "single-spa-lifecycle";
 import "./index.css";
 import App from "./App";
 // import reportWebVitals from './reportWebVitals';
@@ -26,14 +27,14 @@ if (!window.singleSpaNavigate) {
  */
 
 // 注意这里的每一个生命周期函数必须是 async 函数
-export async function bootstrap() {
+async function bootstrap() {
   console.log("[React 子应用] bootstrap excuted");
 }
 
 /**
  * 微应用每次激活时都会调用 mount 周期函数，通常在这里执行微应用的渲染
  */
-export async function mount(props) {
+async function mount(props) {
   console.log("[React 子应用] mount excuted, props: ", props);
   // 在 single-spa 的注册 API 中会通过 customProps 传递 container 微应用容器元素 ID
   // 因此这里将微应用挂载在主应用的容器元素上
@@ -48,7 +49,7 @@ export async function mount(props) {
 /**
  * 微应用每次失活时会调用 unmount 周期函数，通常在这里执行微应用的卸载
  */
-export async function unmount(props) {
+async function unmount(props) {
   console.log("[React 子应用] unmount excuted, props: ", props);
   root && root.unmount();
 }
@@ -57,3 +58,9 @@ export async function unmount(props) {
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 // reportWebVitals();
+
+registerMicroAppLifecycle("react", {
+  bootstrap,
+  mount,
+  unmount,
+});

@@ -1,3 +1,5 @@
+import { IMicroApp } from "../types";
+
 // 微应用容器元素的 ID
 export const MICRO_APP_CONTAINER_ID = "micro-app-container";
 
@@ -8,20 +10,20 @@ export const MICRO_APP_ROUTER = {
 
 // 菜单信息，这里用于 Mock 后端数据
 // 真实业务可能是一个树状的带权限的菜单信息
-export const mockMicroApps = [
+export const mockMicroApps: IMicroApp[] = [
   {
     // 应用标识
     name: "react",
     // 菜单名称
     title: "React Micro App",
-    app: "http://localhost:3000/main.js",
+    entry: "http://localhost:3000/main.js",
     // 激活路由
     router: MICRO_APP_ROUTER.REACT,
   },
   {
     name: "vue",
     title: "Vue Micro App",
-    app: "http://192.168.31.168:8080/js/app.js",
+    entry: "http://localhost:8080/js/app.js",
     router: MICRO_APP_ROUTER.VUE,
   },
 ];

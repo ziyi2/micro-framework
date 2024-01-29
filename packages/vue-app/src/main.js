@@ -1,4 +1,5 @@
 import { createApp } from "vue";
+import { registerMicroAppLifecycle } from "single-spa-lifecycle";
 import App from "./App.vue";
 let app;
 
@@ -24,3 +25,9 @@ export async function unmount(props) {
   console.log("[Vue 子应用] unmount excuted, props: ", props);
   app && app.unmount();
 }
+
+registerMicroAppLifecycle("vue", {
+  bootstrap,
+  mount,
+  unmount,
+});

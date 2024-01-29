@@ -1,15 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import App from "./App";
-import reportWebVitals from "./reportWebVitals";
+import App from "./App.tsx";
+import reportWebVitals from "./reportWebVitals.js";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { registerMicroApps } from "./utils/single-spa.ts";
-import {
-  MICRO_APP_CONTAINER_ID,
-  MICRO_APP_ROUTER,
-  mockMicroApps,
-} from "./utils/micros";
+import { registerMicroApps, loadMicroApp } from "./utils/single-spa.ts";
+import { MICRO_APP_CONTAINER_ID, mockMicroApps } from "./utils/micros.ts";
 
 // 对 single-spa 的注册 API 进行了二次封装，支持传入数组进行批量注册
 registerMicroApps(
@@ -18,6 +14,7 @@ registerMicroApps(
     name: item.name,
     app: () => {
       // 通过动态 Script 的方式获取
+      return loadMicroApp(item);
     },
     activeWhen: item.router,
     customProps: {
@@ -45,7 +42,7 @@ const router = createBrowserRouter([
   },
 ]);
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const root = ReactDOM.createRoot(document.getElementById("root")!);
 root.render(<RouterProvider router={router} />);
 
 // If you want to start measuring performance in your app, pass a function

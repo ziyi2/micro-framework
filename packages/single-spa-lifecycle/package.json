@@ -1,5 +1,5 @@
 {
-  "name": "lifecycle-sdk",
+  "name": "single-spa-lifecycle",
   "version": "1.0.0",
   "description": "用于主应用获取微应用的生命周期函数",
   "main": "src/index.js",

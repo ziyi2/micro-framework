@@ -1,6 +1,7 @@
+import React from "react";
 import { Outlet, Link } from "react-router-dom";
 import "./App.css";
-import { mockMicroApps } from "./utils/micros";
+import { mockMicroApps } from "./utils/micros.ts";
 
 function App() {
   return (
