@@ -21,6 +21,7 @@ function App() {
       </div>
       <div className="app-content">
         {/* 这里的 <Outlet /> 会被 <RouterProvider router={router} /> 中 router 提供的 children 进行替换 */}
+        {/* 所以本质上会被微应用的容器元素 <div id={MICRO_APP_CONTAINER_ID}></div> 替代  */}
         <Outlet />
       </div>
     </div>

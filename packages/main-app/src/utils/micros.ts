@@ -16,6 +16,7 @@ export const mockMicroApps: IMicroApp[] = [
     name: "react",
     // 菜单名称
     title: "React Micro App",
+    // 应用地址
     entry: "http://localhost:3000/main.js",
     // 激活路由
     router: MICRO_APP_ROUTER.REACT,

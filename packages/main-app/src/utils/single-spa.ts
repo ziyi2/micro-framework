@@ -8,7 +8,7 @@ import { IMicroApp } from "../types";
 // 对 single-spa 的 registerApplication 进行二次封装，使其可以接收一个数组，批量注册微应用
 export function registerMicroApps(apps: RegisterApplicationConfig[]) {
   // @ts-ignore
-  // 如果不开启 __DEV__，single-spa 无法正常运行
+  // 如果不开启 __DEV__，single-spa 的源码无法正常运行
   window.__DEV__ = true;
   apps.forEach(registerApplication);
   start();
@@ -22,7 +22,7 @@ export function loadMicroApp(app: IMicroApp): Promise<LifeCycles> {
     // 如何让微应用的生命周期初始化后立马可以在主应用中获取？
     // 例如不需要等待 onload 事件触发
     script.onload = () => {
-      resolve(getMicroAppLifecycle(app.name)); // 从全局对象上获取生命周期函数
+      resolve(getMicroAppLifecycle(app.name)); // 从全局映射中获取生命周期函数
     };
     script.onerror = reject;
     document.head.appendChild(script);
