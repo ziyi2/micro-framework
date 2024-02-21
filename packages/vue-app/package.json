@@ -8,7 +8,7 @@
     "email": "18768107826@163.com"
   },
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "start": "vue-cli-service serve",
     "build": "vue-cli-service build --target lib --name vue-app --inline-vue src/main.js",
     "lint": "vue-cli-service lint",
     "test": "node ./__tests__/vue-app.test.js"

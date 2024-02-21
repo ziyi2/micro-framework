@@ -51,7 +51,6 @@ const shouldInlineRuntimeChunk = process.env.INLINE_RUNTIME_CHUNK !== "false";
 const emitErrorsAsWarnings = process.env.ESLINT_NO_DEV_ERRORS === "true";
 const disableESLintPlugin = process.env.DISABLE_ESLINT_PLUGIN === "true";
 
-
 // const imageInlineSizeLimit = parseInt(
 //   process.env.IMAGE_INLINE_SIZE_LIMIT || "10000000"
 // );
@@ -230,9 +229,9 @@ module.exports = function (webpackEnv) {
           ((info) =>
             path.resolve(info.absoluteResourcePath).replace(/\\/g, "/")),
       // libraryTarget: "commonjs",
-      library: {
-        type: 'commonjs'
-      }
+      library: "reactMicroApp",
+      libraryTarget: "umd",
+      chunkLoadingGlobal: `webpackJsonp_reactMicroApp`,
     },
     cache: {
       type: "filesystem",
@@ -295,7 +294,7 @@ module.exports = function (webpackEnv) {
         }),
         // This is only used in production mode
         new CssMinimizerPlugin(),
-      ]
+      ],
     },
     resolve: {
       // This allows you to set a fallback for where webpack should look for modules.
@@ -361,20 +360,20 @@ module.exports = function (webpackEnv) {
             {
               test: [/\.avif$/],
               mimetype: "image/avif",
-              type: 'asset/inline',
+              type: "asset/inline",
             },
             // "url" loader works like "file" loader except that it embeds assets
             // smaller than specified limit in bytes as data URLs to avoid requests.
             // A missing `test` is equivalent to a match.
             {
               test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
-              type: 'asset/inline',
+              type: "asset/inline",
             },
             {
               test: /\.svg$/,
               // SVG 内联
               // https://webpack.js.org/guides/asset-modules/#inlining-assets
-              type: 'asset/inline',
+              type: "asset/inline",
               use: [
                 // {
                 //   loader: require.resolve("@svgr/webpack"),
@@ -395,7 +394,7 @@ module.exports = function (webpackEnv) {
                 //   },
                 // },
               ],
-              
+
               issuer: {
                 and: [/\.(ts|tsx|js|jsx|md|mdx)$/],
               },
@@ -747,10 +746,10 @@ module.exports = function (webpackEnv) {
           },
         }),
 
-        // 构建单个 JS 脚本
-        new webpack.optimize.LimitChunkCountPlugin({
-          maxChunks: 1,
-        }),
+      // 构建单个 JS 脚本
+      new webpack.optimize.LimitChunkCountPlugin({
+        maxChunks: 1,
+      }),
     ].filter(Boolean),
     // Turn off performance processing because we utilize
     // our own hints via the FileSizeReporter
