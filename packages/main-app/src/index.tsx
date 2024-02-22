@@ -13,7 +13,7 @@ registerMicroApps(
   mockMicroApps.map((item) => ({
     name: item.name,
     app: () => {
-      // 通过动态 Script 的方式获取
+      // 通过 Fetch 请求方式获取
       return fetchApp(item.entry);
     },
     activeWhen: item.router,
