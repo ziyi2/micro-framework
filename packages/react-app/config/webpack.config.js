@@ -1,5 +1,3 @@
-"use strict";
-
 const fs = require("fs");
 const path = require("path");
 const webpack = require("webpack");
@@ -27,6 +25,13 @@ const ForkTsCheckerWebpackPlugin =
 const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
 
 const createEnvironmentHash = require("./webpack/persistentCache/createEnvironmentHash");
+const { v4: uuidv4 } = require("uuid");
+const { name } = require("../package.json");
+
+// 确保全局对象属性的唯一性
+// name: 保持微应用的可辨识性
+// uuidv4: 保持全局唯一性
+const appKey = `${name}_${uuidv4()}`;
 
 // Source maps are resource heavy and can cause out of memory issue for large source files.
 const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== "false";
@@ -229,9 +234,15 @@ module.exports = function (webpackEnv) {
           ((info) =>
             path.resolve(info.absoluteResourcePath).replace(/\\/g, "/")),
       // libraryTarget: "commonjs",
-      library: "reactMicroApp",
+      library: appKey,
       libraryTarget: "umd",
-      chunkLoadingGlobal: `webpackJsonp_reactMicroApp`,
+      chunkLoadingGlobal: `webpackJsonp_${appKey}`,
+    },
+    // 支持代码分割
+    optimization: {
+      splitChunks: {
+        chunks: "all",
+      },
     },
     cache: {
       type: "filesystem",
@@ -747,9 +758,9 @@ module.exports = function (webpackEnv) {
         }),
 
       // 构建单个 JS 脚本
-      new webpack.optimize.LimitChunkCountPlugin({
-        maxChunks: 1,
-      }),
+      // new webpack.optimize.LimitChunkCountPlugin({
+      //   maxChunks: 1,
+      // }),
     ].filter(Boolean),
     // Turn off performance processing because we utilize
     // our own hints via the FileSizeReporter
