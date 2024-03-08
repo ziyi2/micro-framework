@@ -6,6 +6,10 @@ import App from "./App";
 
 let root;
 
+import(/* webpackChunkName: "about" */ "./about.js").then((res) => {
+  console.log(res);
+});
+
 // 判断是否在 single-spa 的环境中运行
 // 如果不是，那么说明不在微前端的环境中，可以独立启动
 if (!window.singleSpaNavigate) {

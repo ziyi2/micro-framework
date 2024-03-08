@@ -17,14 +17,20 @@ export const mockMicroApps: IMicroApp[] = [
     // 菜单名称
     title: "React Micro App",
     // 应用地址
-    entry: "http://localhost:3000/main.js",
+    entry: [
+      "http://localhost:3000/vendors.js",
+      "http://localhost:3000/main.js",
+    ],
     // 激活路由
     router: MICRO_APP_ROUTER.REACT,
   },
   {
     name: "vue",
     title: "Vue Micro App",
-    entry: "http://localhost:8080/js/app.js",
+    entry: [
+      "http://localhost:8080/js/chunk-vendors.js",
+      "http://localhost:8080/js/app.js",
+    ],
     router: MICRO_APP_ROUTER.VUE,
   },
 ];
