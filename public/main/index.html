@@ -102,7 +102,7 @@
 
     <script type="text/javascript">
       class MicroAppManager extends UtilsManager {
-        micrpApps = [];
+        microApps = [];
 
         constructor() {
           super();
@@ -199,7 +199,9 @@
                 // window?.[microApp.unmount]?.();
 
                 // Web Components 方案
-                $webcomponent.style.display = "none";
+                if ($webcomponent) {
+                  $webcomponent.style.display = "none";
+                }
               }
             });
           });
