@@ -37,10 +37,33 @@ export function triggerAppChange() {
   return reroute();
 }
 
+/**
+ * @description 重新路由
+ * 触发的时机：
+ * 1. 当浏览器的 url 发生变化
+ * 2. 当调用 start() 方法后
+ * 3. 当调用 registerApplication() 方法后
+ * 4. 当调用 navigateToUrl() 方法后
+ * 5. 当调用 triggerAppChange() 方法后
+ * 6. 当调用 unloadApplication() 方法后
+ * 7. 当调用 loadApplication() 方法后
+ * 8. 当调用 mountRootParcel() 方法后
+ * 9. 当调用 unmountRootParcel() 方法后
+ *
+ * 总结：
+ * retoute 主要是在应用发生变化时触发，比如新增、删除、更新、加载、去加载、卸载、挂载应用等。
+ *
+ * @export
+ * @param [pendingPromises=[]] 等待应用变化的 Promise 数组
+ * @param eventArguments 事件参数
+ * @returns {*}
+ */
 export function reroute(pendingPromises = [], eventArguments) {
   // eslint-disable-next-line no-console
-  console.log("[navigation/reroute.js - reroute]: start 函数开始执行...");
+  console.log("[navigation/reroute.js - reroute]: reroute 函数开始执行...");
 
+  // 如果当前正在进行应用变化，则将 eventArguments 存储到 peopleWaitingOnAppChange 数组中
+  // 这里主要用于处理多个应用同时发生变化的情况，比如同时加载多个应用
   if (appChangeUnderway) {
     return new Promise((resolve, reject) => {
       peopleWaitingOnAppChange.push({
@@ -51,6 +74,11 @@ export function reroute(pendingPromises = [], eventArguments) {
     });
   }
 
+  // 获取当前应用的变化情况
+  // 1. appsToUnload: 需要去加载的应用
+  // 2. appsToUnmount: 需要卸载的应用
+  // 3. appsToLoad: 需要加载的应用
+  // 4. appsToMount: 需要挂载的应用
   const { appsToUnload, appsToUnmount, appsToLoad, appsToMount } =
     getAppChanges();
   let appsThatChanged,
@@ -58,7 +86,10 @@ export function reroute(pendingPromises = [], eventArguments) {
     oldUrl = currentUrl,
     newUrl = (currentUrl = window.location.href);
 
+  // 如果已经调用了 singleSpa.start() 方法
+  // 调用 singleSpa.registerApplication() 方法后，再调用 singleSpa.start() 方法之后会走到这里
   if (isStarted()) {
+    // 设置当前应用变化正在进行中，避免多次触发应用变化
     appChangeUnderway = true;
     appsThatChanged = appsToUnload.concat(
       appsToLoad,
@@ -85,6 +116,8 @@ export function reroute(pendingPromises = [], eventArguments) {
       "[navigation/reroute.js - reroute]: 准备执行 performAppChanges..."
     );
     return performAppChanges();
+    // 如果没有调用 singleSpa.start() 方法
+    // 调用 singleSpa.registerApplication() 方法后，还没有调用 singleSpa.start() 方法之前会走到这里
   } else {
     appsThatChanged = appsToLoad;
     console.log("[navigation/reroute.js - reroute]: 准备执行 loadApps...");
@@ -95,6 +128,10 @@ export function reroute(pendingPromises = [], eventArguments) {
     navigationIsCanceled = true;
   }
 
+  /**
+   * @description 加载应用
+   * @returns
+   */
   function loadApps() {
     console.log("[navigation/reroute.js - loadApps]: loadApps 开始执行...");
     return Promise.resolve().then(() => {
@@ -121,6 +158,10 @@ export function reroute(pendingPromises = [], eventArguments) {
     });
   }
 
+  /**
+   * @description 执行应用变化
+   * @returns {*}
+   */
   function performAppChanges() {
     console.log(
       "[navigation/reroute.js - performAppChanges]: performAppChanges 开始执行..."
@@ -143,6 +184,8 @@ export function reroute(pendingPromises = [], eventArguments) {
         "[navigation/reroute.js - performAppChanges]: 触发 window.dispatchEvent 的 single-spa:before-routing-event 事件， event: ",
         getCustomEventDetail(true, { cancelNavigation })
       );
+
+      // 通过监听 single-spa:before-routing-event 事件，可以取消导航
       window.dispatchEvent(
         new CustomEvent(
           "single-spa:before-routing-event",
@@ -150,6 +193,7 @@ export function reroute(pendingPromises = [], eventArguments) {
         )
       );
 
+      // 如果取消了导航，则直接返回
       if (navigationIsCanceled) {
         window.dispatchEvent(
           new CustomEvent(
@@ -333,6 +377,12 @@ export function reroute(pendingPromises = [], eventArguments) {
     callCapturedEventListeners(eventArguments);
   }
 
+  /**
+   * @description 获取自定义事件详情信息
+   * @param isBeforeChanges 是否在应用变化之前
+   * @param extraProperties 额外的属性，例如 { cancelNavigation }
+   * @returns {Object} 自定义事件详情信息
+   */
   function getCustomEventDetail(isBeforeChanges = false, extraProperties) {
     const newAppStatuses = {};
     const appsByNewStatus = {
@@ -346,6 +396,7 @@ export function reroute(pendingPromises = [], eventArguments) {
       [SKIP_BECAUSE_BROKEN]: [],
     };
 
+    // 如果在应用变化之前，则获取应用的状态
     if (isBeforeChanges) {
       appsToLoad.concat(appsToMount).forEach((app, index) => {
         addApp(app, MOUNTED);
@@ -362,6 +413,7 @@ export function reroute(pendingPromises = [], eventArguments) {
       });
     }
 
+    // 发送事件时包装的详细信息
     const result = {
       detail: {
         newAppStatuses,
@@ -374,16 +426,27 @@ export function reroute(pendingPromises = [], eventArguments) {
       },
     };
 
+    // 如果有额外的属性，则添加到 result.detail 对象中
     if (extraProperties) {
       assign(result.detail, extraProperties);
     }
 
     return result;
 
+    /**
+     * @description 添加应用
+     * @param app 应用
+     * @param status 状态
+     */
     function addApp(app, status) {
+      // 获取应用的名称
       const appName = toName(app);
+      // 获取应用的状态
       status = status || getAppStatus(appName);
+      // 将应用的状态添加到 newAppStatuses 对象中
       newAppStatuses[appName] = status;
+      // 将应用的名称添加到 appsByNewStatus 对象中
+      // 例如：appsByNewStatus = { MOUNTED: ['app1', 'app2'], NOT_MOUNTED: ['app3', 'app4'] }
       const statusArr = (appsByNewStatus[status] =
         appsByNewStatus[status] || []);
       statusArr.push(appName);
@@ -412,7 +475,8 @@ function tryToBootstrapAndMount(app, unmountAllPromise) {
     );
     return toBootstrapPromise(app).then((app) => {
       console.log(
-        "[navigation/reroute.js - tryToBootstrapAndMount]: 准备执行所有子应用的 unmount 方法...", unmountAllPromise
+        "[navigation/reroute.js - tryToBootstrapAndMount]: 准备执行所有子应用的 unmount 方法...",
+        unmountAllPromise
       );
       unmountAllPromise.then(() => {
         console.log(

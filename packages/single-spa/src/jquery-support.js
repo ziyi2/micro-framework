@@ -2,6 +2,11 @@ import { routingEventsListeningTo } from "./navigation/navigation-events.js";
 
 let hasInitialized = false;
 
+/**
+ * @description 在 single-spa 应用中，重写 jQuery 的 on 和 off 方法，使其能够监听 single-spa 的路由事件
+ * @export
+ * @param [jQuery=window.jQuery]
+ */
 export function ensureJQuerySupport(jQuery = window.jQuery) {
   if (!jQuery) {
     if (window.$ && window.$.fn && window.$.fn.jquery) {

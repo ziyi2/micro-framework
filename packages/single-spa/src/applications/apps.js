@@ -25,6 +25,11 @@ import { assign } from "../utils/assign";
 
 const apps = [];
 
+/**
+ * @description 计算应用的变更情况
+ * @export
+ * @returns {Object} 返回变更的应用
+ */
 export function getAppChanges() {
   const appsToUnload = [],
     appsToUnmount = [],
@@ -35,30 +40,48 @@ export function getAppChanges() {
   const currentTime = new Date().getTime();
 
   apps.forEach((app) => {
+    // 判断应用是否应该激活
+    // 1. 如果应用的状态是 SKIP_BECAUSE_BROKEN，那么不需要激活
+    // 2. 通过 shouldBeActive 函数判断应用是否应该激活
     const appShouldBeActive =
       app.status !== SKIP_BECAUSE_BROKEN && shouldBeActive(app);
 
+    // 状态机（即将进行状态转换），对应用进行分类
     switch (app.status) {
+      // 应用之前的状态是 LOAD_ERROR
       case LOAD_ERROR:
+        // 判断应用是否要加载：如果应用之前加载失败，此时被激活，并且加载失败的时间超过 200 毫秒，那么即将重新加载应用
         if (appShouldBeActive && currentTime - app.loadErrorTime >= 200) {
           appsToLoad.push(app);
         }
         break;
+
+      // 应用之前的状态是 NOT_LOADED 或者 LOADING_SOURCE_CODE
+      // 1. 注册应用后，应用的初始状态是 NOT_LOADED
       case NOT_LOADED:
       case LOADING_SOURCE_CODE:
+        // 判断应用是否要加载：如果应用被激活，那么即将加载应用
         if (appShouldBeActive) {
           appsToLoad.push(app);
         }
         break;
+      // 应用之前的状态是 NOT_BOOTSTRAPPED 或者 NOT_MOUNTED
       case NOT_BOOTSTRAPPED:
       case NOT_MOUNTED:
+        // 判断应用是否要去加载
+        // 1. 如果应用被激活
+        // 2. 如果确实被标记了要去卸载，在 lifecycles/unload.js 中会维护 appsToUnload 对象，用于标记应用是否要去加载
         if (!appShouldBeActive && getAppUnloadInfo(toName(app))) {
           appsToUnload.push(app);
+          // 判断应用是否要挂载：如果应用被激活，那么即将挂载应用
         } else if (appShouldBeActive) {
           appsToMount.push(app);
         }
         break;
+
+      // 应用之前的状态是 MOUNTED
       case MOUNTED:
+        // 判断应用是否要卸载：如果应用失活，那么即将卸载应用
         if (!appShouldBeActive) {
           appsToUnmount.push(app);
         }
@@ -88,15 +111,27 @@ export function getAppStatus(appName) {
   return app ? app.status : null;
 }
 
+/**
+ * @
+ * @description 注册微应用
+ * @export
+ * @param appNameOrConfig 应用名称或者应用配置对象
+ * @param appOrLoadApp  应用对象或者加载应用的函数，返回值是一个 Promise
+ * @param activeWhen  一个函数或者字符串，用于判断应用是否激活
+ * @param customProps 一个对象，用于传递自定义属性
+ */
 export function registerApplication(
   appNameOrConfig,
   appOrLoadApp,
   activeWhen,
   customProps
 ) {
+  console.log(
+    "[applications/apps.js - registerApplication] registerApplication 函数开始执行， app: ",
+    appNameOrConfig
+  );
 
-  console.log("[applications/apps.js - registerApplication] registerApplication 函数开始执行， app: ", appNameOrConfig);
-
+  // 对注册应用的参数进行格式化
   const registration = sanitizeArguments(
     appNameOrConfig,
     appOrLoadApp,
@@ -104,6 +139,7 @@ export function registerApplication(
     customProps
   );
 
+  // 如果已经注册了同名的应用，那么抛出异常
   if (getAppNames().indexOf(registration.name) !== -1)
     throw Error(
       formatErrorMessage(
@@ -114,10 +150,14 @@ export function registerApplication(
       )
     );
 
+  // 将注册应用缓存到 apps 数组中
   apps.push(
+    // Object.assign() 的兼容性处理
     assign(
       {
+        // 加载错误的时间
         loadErrorTime: null,
+        // 应用的状态
         status: NOT_LOADED,
         parcels: {},
         devtools: {
@@ -127,13 +167,17 @@ export function registerApplication(
           },
         },
       },
+      // 格式化后的注册应用参数
       registration
     )
   );
 
   if (isInBrowser) {
+    // 支持 jQuery 的路由事件监听
     ensureJQuerySupport();
-    console.log("[applications/apps.js - registerApplication] 在 registerApplication 中准备执行 reroute 函数...");
+    console.log(
+      "[applications/apps.js - registerApplication] 在 registerApplication 中准备执行 reroute 函数..."
+    );
     reroute();
   }
 }
@@ -224,7 +268,9 @@ function immediatelyUnloadApp(app, resolve, reject) {
       resolve();
       setTimeout(() => {
         // reroute, but the unload promise is done
-        console.log("[applications/apps.js - immediatelyUnloadApp] 在 immediatelyUnloadApp 中准备执行 reroute 函数...");
+        console.log(
+          "[applications/apps.js - immediatelyUnloadApp] 在 immediatelyUnloadApp 中准备执行 reroute 函数..."
+        );
         reroute();
       });
     })
@@ -351,12 +397,25 @@ function validCustomProps(customProps) {
   );
 }
 
+/**
+ * @description 对注册应用的参数进行格式化
+ * @param appNameOrConfig 应用名称或者应用配置对象
+ * @param appOrLoadApp 应用对象或者加载应用的函数，返回值是一个 Promise
+ * @param activeWhen 一个函数或者字符串，用于判断应用是否激活
+ * @param customProps 一个对象，用于传递自定义属性
+ * @returns {Object} 返回格式化后的注册应用参数，例如 { name: 'app1', app: loadApp, activeWhen, customProps }
+ */
 function sanitizeArguments(
   appNameOrConfig,
   appOrLoadApp,
   activeWhen,
   customProps
 ) {
+  // registerApplication 的参数可以是两种形式：
+  // 1. 函数 API: single-spa.registerApplication(name, loadApp, activeWhen, customProps);
+  // 2. 对象 API: single-spa.registerApplication({ name: 'app1', app: loadApp, activeWhen, customProps });
+
+  // 如果 appNameOrConfig 是一个对象，表示使用对象 API
   const usingObjectAPI = typeof appNameOrConfig === "object";
 
   const registration = {
@@ -366,13 +425,22 @@ function sanitizeArguments(
     customProps: null,
   };
 
+  // 如果使用对象 API，那么 appNameOrConfig 就是一个对象
   if (usingObjectAPI) {
+    // 对 registerApplication 的首个参数进行格式校验（其余三个参数不需要校验）
+    // 1. name 必须是字符串
+    // 2. app 必须是对象或者函数
+    // 3. activeWhen 必须是函数或者字符串
+    // 4. customProps 必须是对象
     validateRegisterWithConfig(appNameOrConfig);
     registration.name = appNameOrConfig.name;
     registration.loadApp = appNameOrConfig.app;
     registration.activeWhen = appNameOrConfig.activeWhen;
     registration.customProps = appNameOrConfig.customProps;
+
+    // 如果使用函数 API，那么 appNameOrConfig 是一个字符串
   } else {
+    // 对 registerApplication 的四个参数进行格式校验
     validateRegisterWithArguments(
       appNameOrConfig,
       appOrLoadApp,
@@ -385,38 +453,71 @@ function sanitizeArguments(
     registration.customProps = customProps;
   }
 
+  // 对注册应用的 loadApp 参数进行格式化，统一为一个返回 Promise 的函数
   registration.loadApp = sanitizeLoadApp(registration.loadApp);
+  // 对注册应用的 customProps 参数进行格式化，如果没有传递，则默认为空对象
   registration.customProps = sanitizeCustomProps(registration.customProps);
+  // 对注册应用的 activeWhen 参数进行格式化，统一为一个函数
   registration.activeWhen = sanitizeActiveWhen(registration.activeWhen);
 
   return registration;
 }
 
+/**
+ * @description 对注册应用的 loadApp 参数进行格式化，统一为一个返回 Promise 的函数
+ * @param loadApp 应用对象或者加载应用的函数，返回值是一个 Promise
+ * @returns {Function} 返回一个返回 Promise 的函数
+ */
 function sanitizeLoadApp(loadApp) {
+  // 如果 loadApp 是一个对象，转化成一个返回 Promise 的函数
+  // 例如：{ bootstrap, mount, unmount } => () => Promise.resolve({ bootstrap, mount, unmount })
   if (typeof loadApp !== "function") {
     return () => Promise.resolve(loadApp);
   }
 
+  // 如果 loadApp 是一个函数，直接返回 loadApp
   return loadApp;
 }
 
+/**
+ * @description 对注册应用的 customProps 参数进行格式化，如果没有传递，则默认为空对象
+ * @param customProps 一个对象，用于传递自定义属性
+ * @returns {Object} 返回格式化后的 customProps 参数
+ */
 function sanitizeCustomProps(customProps) {
   return customProps ? customProps : {};
 }
 
+/**
+ * @description 对注册应用的 activeWhen 参数进行格式化，统一为一个函数
+ * @param activeWhen 一个函数或者字符串，用于判断应用是否激活
+ * @returns {Function} 返回匹配路由的函数
+ */
 function sanitizeActiveWhen(activeWhen) {
+  // 如果 activeWhen 不是数组，转化成数组
   let activeWhenArray = Array.isArray(activeWhen) ? activeWhen : [activeWhen];
+  // 对 activeWhen 数组中的每一项进行格式化，统一为一个函数
   activeWhenArray = activeWhenArray.map((activeWhenOrPath) =>
     typeof activeWhenOrPath === "function"
       ? activeWhenOrPath
-      : pathToActiveWhen(activeWhenOrPath)
+      : // 如果 activeWhenOrPath 是字符串，转化成一个函数
+        pathToActiveWhen(activeWhenOrPath)
   );
 
   return (location) =>
+    // 判断当前路由是否匹配 activeWhenArray 数组中的任意一项
     activeWhenArray.some((activeWhen) => activeWhen(location));
 }
 
+/**
+ * @description 对 path 进行格式化，统一为一个匹配路由的函数
+ * @export
+ * @param path 一个字符串，用于匹配路由
+ * @param exactMatch 一个布尔值，用于判断是否精确匹配
+ * @returns {Function} 返回匹配路由的函数
+ */
 export function pathToActiveWhen(path, exactMatch) {
+  // 根据 path 和 exactMatch 参数，动态组装需要匹配路由的正则表达式
   const regex = toDynamicPathValidatorRegex(path, exactMatch);
 
   return (location) => {
@@ -425,6 +526,12 @@ export function pathToActiveWhen(path, exactMatch) {
     if (!origin) {
       origin = `${location.protocol}//${location.host}`;
     }
+    // 判断当前路由是否匹配 path
+    // 1. location.href: http://localhost:8080/react/path/to/something?name=123#/home
+    // 2. location.origin: http://localhost:8080
+    // 3. location.search: ?name=123
+    // 4. location.hash: #/home
+    // 5. route: /react/path/to/something
     const route = location.href
       .replace(origin, "")
       .replace(location.search, "")
@@ -432,6 +539,55 @@ export function pathToActiveWhen(path, exactMatch) {
     return regex.test(route);
   };
 }
+
+/**
+ * @description 根据 path 和 exactMatch 参数，动态组装需要匹配路由的正则表达式
+ *
+ * @example
+ * toDynamicPathValidatorRegex("/react") => /^\/react(\/.*)?(#.*)?$/i
+ *
+ * 正则：
+ * /^\/react(\/.*)?(#.*)?$/i
+ *
+ * 详细说明：
+ * 1. ^：匹配输入的开始
+ * 2. \/react：匹配字符串 /react
+ * 3. (\/.*)?：匹配零次或一次以 / 开头的任意字符串
+ * 4. (#.*)?：匹配零次或一次以 # 开头的任意字符串，例如 hash 路由
+ * 5. $：匹配输入的结束
+ * 6. i：不区分大小写
+ *
+ * 匹配示例：
+ * 1. /react
+ * 2. /react/path/to/something
+ * 3. /react#hash
+ * 4. /react/path/to/something#hash
+ *
+ * @example
+ * toDynamicPathValidatorRegex("/react/:id") => /^\/react\/[^/]+\/?/i
+ *
+ * 正则：
+ * /^\/react\/[^/]+\/?/i
+ *
+ * 详细说明：
+ * 1. ^：匹配输入的开始
+ * 2. \/react\/：匹配字符串 /react/
+ * 3. [^/]+：匹配一次或多次不包含 / 的任意字符，可以匹配 /react/ 后面的一段路径
+ * 4. \/?：匹配零次或一次 /，可以匹配路径的结束 / 或者没有结束 /
+ * 5. i：不区分大小写
+ *
+ * 匹配示例：
+ * 1. /react/123
+ * 2. /react/123/
+ * 3. /react/123/path/to/something
+ * 4. /react/123/path/to/something/
+ * 5. /react/123#hash
+ * 6. /react/123#hash/
+ *
+ * @param path 一个字符串，用于匹配路由
+ * @param exactMatch 一个布尔值，用于判断是否精确匹配
+ * @returns {RegExp} 返回匹配路由的正则表达式
+ */
 
 function toDynamicPathValidatorRegex(path, exactMatch) {
   let lastIndex = 0,
@@ -442,11 +598,13 @@ function toDynamicPathValidatorRegex(path, exactMatch) {
     path = "/" + path;
   }
 
+  // 遍历 path，判断 path 中是否包含动态路由
   for (let charIndex = 0; charIndex < path.length; charIndex++) {
     const char = path[charIndex];
     const startOfDynamic = !inDynamic && char === ":";
     const endOfDynamic = inDynamic && char === "/";
     if (startOfDynamic || endOfDynamic) {
+      // 如果 path 中包含动态路由，那么 inDynamic 为 true
       appendToRegex(charIndex);
     }
   }
@@ -456,6 +614,7 @@ function toDynamicPathValidatorRegex(path, exactMatch) {
 
   function appendToRegex(index) {
     const anyCharMaybeTrailingSlashRegex = "[^/]+/?";
+    // escapeStrRegex 函数用于转义字符串中的特殊字符
     const commonStringSubPath = escapeStrRegex(path.slice(lastIndex, index));
 
     regexStr += inDynamic
