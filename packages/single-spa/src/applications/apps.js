@@ -28,7 +28,7 @@ const apps = [];
 /**
  * @description 计算应用的变更情况
  * @export
- * @returns {Object} 返回变更的应用
+ * @returns {Object} 返回变更的应用，例如 { appsToUnload, appsToUnmount, appsToLoad, appsToMount }
  */
 export function getAppChanges() {
   const appsToUnload = [],
@@ -127,7 +127,7 @@ export function registerApplication(
   customProps
 ) {
   console.log(
-    "[applications/apps.js - registerApplication] registerApplication 函数开始执行， app: ",
+    "[applications/apps.js - registerApplication] registerApplication 函数开始执行， 注册参数: ",
     appNameOrConfig
   );
 
@@ -178,6 +178,7 @@ export function registerApplication(
     console.log(
       "[applications/apps.js - registerApplication] 在 registerApplication 中准备执行 reroute 函数..."
     );
+    // 重新路由 - 批量加载应用（未调用 start 启动）或重新计算应用的变更情况（调用 start 启动）
     reroute();
   }
 }
@@ -204,6 +205,13 @@ export function unregisterApplication(appName) {
   });
 }
 
+/**
+ * @description unload 应用
+ * @export
+ * @param appName 应用名称
+ * @param [opts={ waitForUnmount: false }]
+ * @returns {*}
+ */
 export function unloadApplication(appName, opts = { waitForUnmount: false }) {
   if (typeof appName !== "string") {
     throw Error(
@@ -213,6 +221,8 @@ export function unloadApplication(appName, opts = { waitForUnmount: false }) {
       )
     );
   }
+
+  // 查找应用
   const app = find(apps, (App) => toName(App) === appName);
   if (!app) {
     throw Error(
@@ -225,34 +235,42 @@ export function unloadApplication(appName, opts = { waitForUnmount: false }) {
     );
   }
 
+  // 获取应用的 unload 信息
   const appUnloadInfo = getAppUnloadInfo(toName(app));
+  // 如果应用应用需要等待 unmount，那么将应用添加到 unload 列表中
   if (opts && opts.waitForUnmount) {
     // We need to wait for unmount before unloading the app
-
+    // 如果当前应用已经在等待 unload，那么直接返回 appUnloadInfo.promise
     if (appUnloadInfo) {
       // Someone else is already waiting for this, too
       return appUnloadInfo.promise;
     } else {
       // We're the first ones wanting the app to be resolved.
       const promise = new Promise((resolve, reject) => {
+        // 将应用添加到 unload 列表中
         addAppToUnload(app, () => promise, resolve, reject);
       });
       return promise;
     }
+    // 否则，直接 unload 应用
   } else {
     /* We should unmount the app, unload it, and remount it immediately.
      */
 
     let resultPromise;
 
+    // 如果当前应用已经在等待 unload
     if (appUnloadInfo) {
       // Someone else is already waiting for this app to unload
       resultPromise = appUnloadInfo.promise;
+      /// 直接 unload 应用
       immediatelyUnloadApp(app, appUnloadInfo.resolve, appUnloadInfo.reject);
     } else {
       // We're the first ones wanting the app to be resolved.
       resultPromise = new Promise((resolve, reject) => {
+        // 将应用添加到去加载列表中
         addAppToUnload(app, () => resultPromise, resolve, reject);
+        // 直接 unload 应用
         immediatelyUnloadApp(app, resolve, reject);
       });
     }
@@ -262,7 +280,9 @@ export function unloadApplication(appName, opts = { waitForUnmount: false }) {
 }
 
 function immediatelyUnloadApp(app, resolve, reject) {
+  // 执行微应用的 unmount 生命周期函数
   toUnmountPromise(app)
+    // 执行微应用的 unload 生命周期函数
     .then(toUnloadPromise)
     .then(() => {
       resolve();

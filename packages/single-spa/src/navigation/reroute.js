@@ -62,10 +62,14 @@ export function reroute(pendingPromises = [], eventArguments) {
   // eslint-disable-next-line no-console
   console.log("[navigation/reroute.js - reroute]: reroute 函数开始执行...");
 
-  // 如果当前正在进行应用变化，则将 eventArguments 存储到 peopleWaitingOnAppChange 数组中
-  // 这里主要用于处理多个应用同时发生变化的情况，比如同时加载多个应用
+  // 如果当前正在执行 performAppChanges 处理应用变化，则将 eventArguments 存储到 peopleWaitingOnAppChange 数组中
+  // 如果 performAppChanges 函数还未执行完毕，但是再次调用了 reroute 函数，那么会等待 performAppChanges 函数执行完毕
+  // 在 performAppChanges 函数执行完毕后，会调用 finishUpAndReturn 函数，如果 peopleWaitingOnAppChange 数组中有数据，则会再次执行 reroute 函数
+  // 因此这里主要用于延迟执行 reroute 函数
   if (appChangeUnderway) {
     return new Promise((resolve, reject) => {
+      // 将 resolve、reject、eventArguments 存储到 peopleWaitingOnAppChange 数组中
+      // 当 performAppChanges 函数执行完毕后，会调用 finishUpAndReturn 函数，如果 peopleWaitingOnAppChange 数组中有数据，则会再次执行 reroute 函数
       peopleWaitingOnAppChange.push({
         resolve,
         reject,
@@ -124,6 +128,9 @@ export function reroute(pendingPromises = [], eventArguments) {
     return loadApps();
   }
 
+  /**
+   * @description 如果外部监听 single-spa:before-routing-event 事件并调用了 cancelNavigation 方法，则取消导航
+   */
   function cancelNavigation() {
     navigationIsCanceled = true;
   }
@@ -138,6 +145,8 @@ export function reroute(pendingPromises = [], eventArguments) {
       console.log(
         "[navigation/reroute.js - loadApps]: loadApps 的 Promise.resolve 开始执行..."
       );
+
+      // 批量执行 appsToLoad 数组中的 app.loadApp 方法（registerApplication 的第二个参数 app）
       const loadPromises = appsToLoad.map(toLoadPromise);
 
       return (
@@ -171,6 +180,8 @@ export function reroute(pendingPromises = [], eventArguments) {
         "[navigation/reroute.js - performAppChanges]: performAppChanges 的 Promise.resolve 开始执行..."
       );
       // https://github.com/single-spa/single-spa/issues/545
+      // 如果没有应用发生变化，则触发 single-spa:before-no-app-change 事件
+      // 如果有应用发生变化，则触发 single-spa:before-app-change 事件
       window.dispatchEvent(
         new CustomEvent(
           appsThatChanged.length === 0
@@ -193,7 +204,7 @@ export function reroute(pendingPromises = [], eventArguments) {
         )
       );
 
-      // 如果取消了导航，则直接返回
+      // 如果外部监听了 single-spa:before-routing-event 事件，并且调用了 cancelNavigation 方法，则取消导航
       if (navigationIsCanceled) {
         window.dispatchEvent(
           new CustomEvent(
@@ -201,28 +212,36 @@ export function reroute(pendingPromises = [], eventArguments) {
             getCustomEventDetail(true)
           )
         );
+        // 结束 performAppChanges 函数的执行
         finishUpAndReturn();
+        // 重新导航到旧的 url
         navigateToUrl(oldUrl);
         return;
       }
 
+      // 批量执行 appsToUnload 数组中的 app.unload 方法
       const unloadPromises = appsToUnload.map(toUnloadPromise);
       console.log(
         "[navigation/reroute.js - performAppChanges]: performAppChanges 中的 unloadPromises 数据: ",
         unloadPromises
       );
 
+      // 批量执行 appsToUnmount 数组中的 app.unmount 方法
       const unmountUnloadPromises = appsToUnmount
         .map(toUnmountPromise)
+        // unmount 执行完毕后，再执行 unload
         .map((unmountPromise) => unmountPromise.then(toUnloadPromise));
 
+      // 将所有的 toUnmountPromise 和 toUnloadPromise 方法合并到 allUnmountPromises 数组中
       const allUnmountPromises = unmountUnloadPromises.concat(unloadPromises);
       const unmountAllPromise = Promise.all(allUnmountPromises);
 
       console.log(
         "[navigation/reroute.js - performAppChanges]: 准备执行所有子应用的 toUnmountPromise 和 toUnloadPromise 方法..."
       );
+      // 等待所有的 toUnmountPromise 和 toUnloadPromise 方法执行完毕
       unmountAllPromise.then(() => {
+        // 触发 single-spa:before-mount-routing-event 事件
         window.dispatchEvent(
           new CustomEvent(
             "single-spa:before-mount-routing-event",
@@ -239,18 +258,22 @@ export function reroute(pendingPromises = [], eventArguments) {
       /* We load and bootstrap apps while other apps are unmounting, but we
        * wait to mount the app until all apps are finishing unmounting
        */
+      // 批量执行 appsToLoad 数组中的 app.loadApp 方法（registerApplication 的第二个参数 app）
+      // 这里不会等待 unmountAllPromise 执行完毕，而是直接执行
       const loadThenMountPromises = appsToLoad.map((app) => {
         console.log(
           "[navigation/reroute.js - performAppChanges]: 准备执行子应用的 app.loadApp 方法（registerApplication 的第二个参数 app）...",
           app.name,
           app.status
         );
+        // 执行 app.loadApp 方法（registerApplication 的第二个参数 app）
         return toLoadPromise(app).then((app) => {
           console.log(
             "[navigation/reroute.js - performAppChanges]: 子应用的 app.loadApp 方法执行完毕，准备执行子应用的周期函数 bootstrap 和 mount ...",
             app.name,
             app.status
           );
+          // load 之后，需要执行 bootstrap 和 mount
           tryToBootstrapAndMount(app, unmountAllPromise);
         });
       });
@@ -264,12 +287,15 @@ export function reroute(pendingPromises = [], eventArguments) {
        * to be mounted. They each wait for all unmounting apps to finish up
        * before they mount.
        */
+      // 批量执行 appsToMount 数组中的 app.bootstrap 和 app.mount 方法
       const mountPromises = appsToMount
+        // 过滤掉 appsToLoad 数组中的 app
         .filter((appToMount) => appsToLoad.indexOf(appToMount) < 0)
         .map((appToMount) => {
           console.log(
             "[navigation/reroute.js - performAppChanges]: appsToMount 准备执行子应用的周期函数 bootstrap 和 mount ..."
           );
+          // 执行 app.bootstrap 和 app.mount 方法
           return tryToBootstrapAndMount(appToMount, unmountAllPromise);
         });
 
@@ -467,23 +493,27 @@ function tryToBootstrapAndMount(app, unmountAllPromise) {
     app.name,
     app.status
   );
+  // 再次检查应用是否应该激活
   if (shouldBeActive(app)) {
     console.log(
       "[navigation/reroute.js - tryToBootstrapAndMount]: 准备执行子应用的 bootstrap 方法...",
       app.name,
       app.status
     );
+    // 执行 app.bootstrap 方法
     return toBootstrapPromise(app).then((app) => {
       console.log(
         "[navigation/reroute.js - tryToBootstrapAndMount]: 准备执行所有子应用的 unmount 方法...",
         unmountAllPromise
       );
+      // 等待所有的 app.unmount 方法执行完毕
       unmountAllPromise.then(() => {
         console.log(
           "[navigation/reroute.js - tryToBootstrapAndMount]: 准备执行子应用的 mount 方法...",
           app.name,
           app.status
         );
+        // 再次检查应用是否应该激活，如果应用应该激活，则执行 app.mount 方法
         shouldBeActive(app) ? toMountPromise(app) : app;
       });
     });

@@ -18,6 +18,7 @@ export function toMountPromise(appOrParcel, hardFail) {
     appOrParcel.status
   );
 
+  // 开启微任务，异步执行微应用的加载函数
   return Promise.resolve().then(() => {
     console.log(
       "[lifecycles/mount.js - toMountPromise]: toMountPromise Promise.resolve 开始执行...",
@@ -25,10 +26,12 @@ export function toMountPromise(appOrParcel, hardFail) {
       appOrParcel.status
     );
 
+    // 如果 appOrParcel.status 不是 NOT_MOUNTED，直接返回 appOrParcel
     if (appOrParcel.status !== NOT_MOUNTED) {
       return appOrParcel;
     }
 
+    // 如果是第一次挂载子应用，触发 single-spa:before-first-mount 事件
     if (!beforeFirstMountFired) {
       window.dispatchEvent(new CustomEvent("single-spa:before-first-mount"));
       beforeFirstMountFired = true;
@@ -40,10 +43,13 @@ export function toMountPromise(appOrParcel, hardFail) {
       appOrParcel.status
     );
 
+    // 触发子应用的 mount 函数（注意使用 resonableTime 包裹，是为了添加执行的超时逻辑）
     return reasonableTime(appOrParcel, "mount")
       .then(() => {
+        // mount 生命周期函数执行成功, 将 appOrParcel.status 设置为 MOUNTED
         appOrParcel.status = MOUNTED;
 
+        // 如果是第一次挂载子应用，触发 single-spa:first-mount 事件
         if (!firstMountFired) {
           window.dispatchEvent(new CustomEvent("single-spa:first-mount"));
           firstMountFired = true;

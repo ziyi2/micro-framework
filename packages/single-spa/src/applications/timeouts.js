@@ -105,6 +105,13 @@ export function setUnloadMaxTime(time, dieOnTimeout, warningMillis) {
   };
 }
 
+/**
+ * @description 执行微应用的生命周期函数，并且设置超时时间
+ * @export
+ * @param appOrParcel 微应用信息
+ * @param lifecycle 生命周期名称，例如：bootstrap、mount、unmount、unload
+ * @returns {*}
+ */
 export function reasonableTime(appOrParcel, lifecycle) {
   console.log(
     "[applications/timeouts.js - reasonableTime]: 开始执行 reasonableTime 函数...",
@@ -113,14 +120,16 @@ export function reasonableTime(appOrParcel, lifecycle) {
     lifecycle
   );
 
+  // 获取微应用的超时配置
   const timeoutConfig = appOrParcel.timeouts[lifecycle];
+  // 获取超时时间
   const warningPeriod = timeoutConfig.warningMillis;
   const type = objectType(appOrParcel);
 
+  // 返回一个 Promise 对象
   return new Promise((resolve, reject) => {
     let finished = false;
     let errored = false;
-
 
     console.log(
       `[applications/timeouts.js - reasonableTime]: 开始执行子应用的 ${lifecycle} 函数...`,
@@ -128,8 +137,15 @@ export function reasonableTime(appOrParcel, lifecycle) {
       appOrParcel.status,
       getProps(appOrParcel)
     );
+
+    // 执行微应用的生命周期函数
+    // 在 toLoadPromise 函数中，已经获取并解析了微应用的生命周期函数，并且将其缓存到 app 对象中
+    // 因此在这里可以执行 appOrParcel[lifecycle]
+
+    // 和在 toLoadPromise 中执行 app.loadApp 函数一样，生命周期函数的执行也需要传入 props 参数（这是实现主应用和微应用通信的主要方式）
     appOrParcel[lifecycle](getProps(appOrParcel))
       .then((val) => {
+        // 如果生命周期函数执行成功，将 finished 设置为 true，并且调用 resolve 函数
         finished = true;
         resolve(val);
       })
@@ -138,7 +154,9 @@ export function reasonableTime(appOrParcel, lifecycle) {
         reject(val);
       });
 
+    // 超时处理
     setTimeout(() => maybeTimingOut(1), warningPeriod);
+    // 超时处理
     setTimeout(() => maybeTimingOut(true), timeoutConfig.millis);
 
     const errMsg = formatErrorMessage(
@@ -154,6 +172,7 @@ export function reasonableTime(appOrParcel, lifecycle) {
     );
 
     function maybeTimingOut(shouldError) {
+      // 如果 finished 为 true，说明生命周期函数执行成功，不需要处理超时
       if (!finished) {
         if (shouldError === true) {
           errored = true;
