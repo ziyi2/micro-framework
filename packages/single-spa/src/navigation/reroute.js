@@ -141,6 +141,8 @@ export function reroute(pendingPromises = [], eventArguments) {
    */
   function loadApps() {
     console.log("[navigation/reroute.js - loadApps]: loadApps 开始执行...");
+
+    // 开启微任务，异步执行微应用的加载函数
     return Promise.resolve().then(() => {
       console.log(
         "[navigation/reroute.js - loadApps]: loadApps 的 Promise.resolve 开始执行..."
@@ -175,6 +177,8 @@ export function reroute(pendingPromises = [], eventArguments) {
     console.log(
       "[navigation/reroute.js - performAppChanges]: performAppChanges 开始执行..."
     );
+
+    // 开启微任务，异步执行应用变化
     return Promise.resolve().then(() => {
       console.log(
         "[navigation/reroute.js - performAppChanges]: performAppChanges 的 Promise.resolve 开始执行..."
@@ -326,6 +330,10 @@ export function reroute(pendingPromises = [], eventArguments) {
     });
   }
 
+  /**
+   * @description performAppChanges 函数执行完毕后，执行 finishUpAndReturn 函数
+   * @returns {*}
+   */
   function finishUpAndReturn() {
     console.log(
       "[navigation/reroute.js - finishUpAndReturn]: finishUpAndReturn 开始执行..."
@@ -368,8 +376,11 @@ export function reroute(pendingPromises = [], eventArguments) {
      * We want to do this after the mounting/unmounting is done but before we
      * resolve the promise for the `reroute` function.
      */
+    // 设置 appChangeUnderway 为 false，表示应用变化已经结束
     appChangeUnderway = false;
 
+    // 在 performAppChanges 函数异步执行期间，如果调用了 reroute 函数，那么会将 eventArguments 存储到 peopleWaitingOnAppChange 数组中，等待 performAppChanges 函数执行完毕后再次执行 reroute 函数
+    // 等待当前 performAppChanges 函数执行完毕后，再次执行 reroute 函数重新处理应用变化
     if (peopleWaitingOnAppChange.length > 0) {
       /* While we were rerouting, someone else triggered another reroute that got queued.
        * So we need reroute again.
@@ -391,6 +402,10 @@ export function reroute(pendingPromises = [], eventArguments) {
    * We want to call the listeners in the same order as if they had not been delayed by
    * single-spa, which means queued ones first and then the most recent one.
    */
+
+  // 延迟执行 hashchange 和 popstate 事件的监听器
+  // 1.在微应用激活时触发了 `popstate` 事件，但是此时微应用的代码还没有加载完成，这会使得微应用错过事件监听，因此在 loadApps 执行完毕后会执行 callAllEventListeners。
+  // 2.如果微应用失活时正好触发了 `popstate` 事件，微应用可能希望在卸载时移除监听 `hashchange` 和 `popstate` 事件，此时 single-spa 可以将事件延迟到微应用卸载后执行，这样微应用在卸载后因为移除了相应的监听事件并不会触发事件的监听执行，所以 performAppChanges 会在所有微应用 `unmount` 和 `unload` 后才延迟执行 callAllEventListeners。
   function callAllEventListeners() {
     console.log(
       "[navigation/reroute.js - callAllEventListeners]: callAllEventListeners 中的 pendingPromises 数据： ",
