@@ -52,38 +52,41 @@ export const mockMicroApps = [
     // 菜单名称
     title: "React Micro App",
     // 应用地址
-    entry: {
-      scripts: [
-        "http://localhost:3000/vendors.js",
-        "http://localhost:3000/main.js",
-      ],
-      html: `<div id="${MICRO_APP_ROUTER.REACT}"></div>`,
-    },
+    // 使用 Fetch 请求并解析 HTML，因此必须能够支持跨域
+    entry: "http://localhost:3000",
+    // entry: {
+    //   scripts: [
+    //     "http://localhost:3000/vendors.js",
+    //     "http://localhost:3000/main.js",
+    //   ],
+    //   html: `<div id="${MICRO_APP_ROUTER.REACT}"></div>`,
+    // },
     // 对应 single-spa 的 activeWhen
     // 激活路由
     activeRule: MICRO_APP_ROUTER.REACT,
     container: `#${MICRO_APP_CONTAINER_ID}`,
     // 对应 single-spa 的 customProps
-    props: {
-      microContainer: MICRO_APP_ROUTER.REACT,
-    },
+    // props: {
+    //   microContainer: MICRO_APP_ROUTER.REACT,
+    // },
   },
   {
     name: "vue",
     title: "Vue Micro App",
-    entry: {
-      scripts: [
-        "http://localhost:8080/js/chunk-vendors.js",
-        "http://localhost:8080/js/app.js",
-      ],
-      // 新增抽离的 styles 样式
-      styles: ["http://localhost:8080/css/app.css"],
-      html: `<div id="${MICRO_APP_ROUTER.VUE}"></div>`,
-    },
+    entry: "http://localhost:8080",
+    // entry: {
+    //   scripts: [
+    //     "http://localhost:8080/js/chunk-vendors.js",
+    //     "http://localhost:8080/js/app.js",
+    //   ],
+    //   // 新增抽离的 styles 样式
+    //   styles: ["http://localhost:8080/css/app.css"],
+    //   html: `<div id="${MICRO_APP_ROUTER.VUE}"></div>`,
+    // },
     activeRule: MICRO_APP_ROUTER.VUE,
     container: `#${MICRO_APP_CONTAINER_ID}`,
-    props: {
-      microContainer: MICRO_APP_ROUTER.VUE,
-    },
+    // props: {
+    //   microContainer: MICRO_APP_ROUTER.VUE,
+    // },
   },
 ];
