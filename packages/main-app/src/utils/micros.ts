@@ -76,6 +76,8 @@ export const mockMicroApps = [
         "http://localhost:8080/js/chunk-vendors.js",
         "http://localhost:8080/js/app.js",
       ],
+      // 新增抽离的 styles 样式
+      styles: ["http://localhost:8080/css/app.css"],
       html: `<div id="${MICRO_APP_ROUTER.VUE}"></div>`,
     },
     activeRule: MICRO_APP_ROUTER.VUE,

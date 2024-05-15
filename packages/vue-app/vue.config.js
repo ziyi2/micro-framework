@@ -11,7 +11,8 @@ const appKey = `${name}_${uuidv4()}`;
 
 module.exports = defineConfig({
   transpileDependencies: true,
-  css: { extract: false },
+  // 将 CSS 样式抽离出来
+  css: { extract: true },
   // 去除文件名哈希
   filenameHashing: false,
 
