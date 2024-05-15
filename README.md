@@ -1,6 +1,4 @@
-# single-spa 微前端示例
-
-这里的 single-spa 使用了 [5.9.5](https://github.com/single-spa/single-spa/tree/v5.9.5) 版本，由于加入了很多打印信息，因此这里没有采用 submodules 的方式进行引入。
+# qiankun 微前端示例
 
 ## 启动命令
 
