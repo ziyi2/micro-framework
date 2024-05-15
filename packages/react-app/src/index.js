@@ -10,9 +10,9 @@ import(/* webpackChunkName: "about" */ "./about.js").then((res) => {
   console.log(res);
 });
 
-// 判断是否在 single-spa 的环境中运行
+// 判断是否在 qiankun 的环境中运行
 // 如果不是，那么说明不在微前端的环境中，可以独立启动
-if (!window.singleSpaNavigate) {
+if (!window.__POWERED_BY_QIANKUN__) {
   root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(
     <React.StrictMode>
@@ -39,9 +39,8 @@ export async function bootstrap() {
  */
 export async function mount(props) {
   console.log("[React 子应用] mount excuted, props: ", props);
-  // 在 single-spa 的注册 API 中会通过 customProps 传递 container 微应用容器元素 ID
-  // 因此这里将微应用挂载在主应用的容器元素上
-  root = ReactDOM.createRoot(document.getElementById(props.container));
+  // qiankun 在注册 react 子应用时会通过 props 传递 microContainer 微应用 DOM 容器元素 ID
+  root = ReactDOM.createRoot(document.getElementById(props.microContainer));
   root.render(
     <React.StrictMode>
       <App />

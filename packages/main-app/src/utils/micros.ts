@@ -1,5 +1,3 @@
-import { IMicroApp } from "../types";
-
 // 微应用容器元素的 ID
 export const MICRO_APP_CONTAINER_ID = "micro-app-container";
 
@@ -8,29 +6,82 @@ export const MICRO_APP_ROUTER = {
   VUE: "vue",
 };
 
+// // single-spa 微应用数据
+// // 菜单信息，这里用于 Mock 后端数据
+// // 真实业务可能是一个树状的带权限的菜单信息
+// export const mockMicroApps: IMicroApp[] = [
+//   {
+//     // 应用标识
+//     name: "react",
+//     // 菜单名称
+//     title: "React Micro App",
+//     // 应用地址
+//     entry: [
+//       "http://localhost:3000/vendors.js",
+//       "http://localhost:3000/main.js",
+//     ],
+//     // 激活路由
+//     activeWhen: MICRO_APP_ROUTER.REACT,
+//     customProps: {
+//       // 向微应用传递需要挂载的容器元素 ID
+//       container: MICRO_APP_CONTAINER_ID,
+//     },
+//   },
+//   {
+//     name: "vue",
+//     title: "Vue Micro App",
+//     entry: [
+//       "http://localhost:8080/js/chunk-vendors.js",
+//       "http://localhost:8080/js/app.js",
+//     ],
+//     activeWhen: MICRO_APP_ROUTER.VUE,
+//     customProps: {
+//       // 向微应用传递需要挂载的容器元素 ID
+//       container: MICRO_APP_CONTAINER_ID,
+//     },
+//   },
+// ];
+
+// qiankun 微应用数据
 // 菜单信息，这里用于 Mock 后端数据
 // 真实业务可能是一个树状的带权限的菜单信息
-export const mockMicroApps: IMicroApp[] = [
+export const mockMicroApps = [
   {
     // 应用标识
     name: "react",
     // 菜单名称
     title: "React Micro App",
     // 应用地址
-    entry: [
-      "http://localhost:3000/vendors.js",
-      "http://localhost:3000/main.js",
-    ],
+    entry: {
+      scripts: [
+        "http://localhost:3000/vendors.js",
+        "http://localhost:3000/main.js",
+      ],
+      html: `<div id="${MICRO_APP_ROUTER.REACT}"></div>`,
+    },
+    // 对应 single-spa 的 activeWhen
     // 激活路由
-    router: MICRO_APP_ROUTER.REACT,
+    activeRule: MICRO_APP_ROUTER.REACT,
+    container: `#${MICRO_APP_CONTAINER_ID}`,
+    // 对应 single-spa 的 customProps
+    props: {
+      microContainer: MICRO_APP_ROUTER.REACT,
+    },
   },
   {
     name: "vue",
     title: "Vue Micro App",
-    entry: [
-      "http://localhost:8080/js/chunk-vendors.js",
-      "http://localhost:8080/js/app.js",
-    ],
-    router: MICRO_APP_ROUTER.VUE,
+    entry: {
+      scripts: [
+        "http://localhost:8080/js/chunk-vendors.js",
+        "http://localhost:8080/js/app.js",
+      ],
+      html: `<div id="${MICRO_APP_ROUTER.VUE}"></div>`,
+    },
+    activeRule: MICRO_APP_ROUTER.VUE,
+    container: `#${MICRO_APP_CONTAINER_ID}`,
+    props: {
+      microContainer: MICRO_APP_ROUTER.VUE,
+    },
   },
 ];
