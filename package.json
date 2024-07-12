@@ -1,17 +1,23 @@
 {
   "name": "root",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ],
+    "nohoist": [
+      "**/@types/node"
+    ]
+  },
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "clean": "lerna clean",
     "start": "lerna run start",
-    "build": "lerna run build --scope react-micro-app --scope vue-micro-app"
+    "build": "lerna run build --scope react-micro-app --scope vue-micro-app",
+    "add": "lerna add @types/node --scope=qiankun --dev "
   },
   "devDependencies": {
-    "lerna": "^6.3.0"
+    "lerna": "6.3.0"
   },
   "engines": {
     "node": ">=16"

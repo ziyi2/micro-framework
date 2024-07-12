@@ -17,3 +17,7 @@ cd packages
 cd main-app
 npm start
 ```
+
+## 构建 qiankun
+
+由于 qiankun 内部的 `@types/node` 在默认情况下会被提升到项目根目录的 `node_modules` 中，为此这里开启了  `nohoist` 配置，并且采用 yarn 进行构建，因此如果要进入 qiankun 目录构建产物，需要先安装 yarn。

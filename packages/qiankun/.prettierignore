@@ -1,0 +1,9 @@
+/test/fixtures
+**/*.gif
+/dist
+/docs
+/es
+/lib
+/coverage
+.cache
+examples
