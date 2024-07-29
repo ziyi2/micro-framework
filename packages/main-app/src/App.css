@@ -2,6 +2,12 @@
   display: flex;
   height: 100vh;
 }
+/* 
+ 主应用样式，React 微应用有一个同样的类名 
+*/
+.app-h1 {
+  color: red;
+}
 
 .app-nav {
   flex-basis: 200px;
@@ -13,13 +19,13 @@
 }
 
 .app-nav a {
-  text-decoration: none;
   display: block;
+  text-decoration: none;
 }
 
 .app-nav ul {
-  list-style: none;
   padding: 0;
+  list-style: none;
 }
 
 .app-nav li a {

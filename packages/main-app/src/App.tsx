@@ -1,29 +1,30 @@
-import React from "react";
 import { Outlet, Link } from "react-router-dom";
 import "./App.css";
 import { mockMicroApps } from "./utils/micros";
 
 function App() {
   return (
-    <div className="app">
-      <div className="app-nav">
-        <p>Micro App List</p>
-        <nav>
-          <ul>
-            {/* 遍历微应用的数据列表生成导航路由信息 */}
-            {mockMicroApps.map((item) => (
-              <li key={item.name}>
-                <Link to={item.activeRule}>{item.title}</Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+    <>
+      {/* 新增一个 h1 标签，用于测试样式干扰 */}
+      <h1 className="app-h1">Hello, Main App</h1>
+      <div className="app">
+        <div className="app-nav">
+          <p>Micro App List</p>
+          <nav>
+            <ul>
+              {mockMicroApps.map((item) => (
+                <li key={item.name}>
+                  <Link to={item.activeRule}>{item.title}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+        <div className="app-content">
+          <Outlet />
+        </div>
       </div>
-      <div className="app-content">
-        {/* 这里的 <Outlet /> 会被 <RouterProvider router={router} /> 中 router 提供的 children 进行替换 */}
-        <Outlet />
-      </div>
-    </div>
+    </>
   );
 }
 
