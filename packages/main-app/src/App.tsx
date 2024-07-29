@@ -1,5 +1,5 @@
 import { Outlet, Link } from "react-router-dom";
-import "./App.css";
+import "./main.css";
 import { mockMicroApps } from "./utils/micros";
 
 function App() {
