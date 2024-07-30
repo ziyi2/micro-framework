@@ -5,6 +5,11 @@ export function registerQiankunMicroApps(
 ) {
   registerMicroApps(microApps);
   start({
-    sandbox: false,
+    sandbox: {
+      // 开启 Shadow DOM 沙箱
+      // strictStyleIsolation: true,
+      // 增加一个特殊的选择器规则来限定其影响范围
+      experimentalStyleIsolation: true,
+    },
   });
 }

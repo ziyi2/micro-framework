@@ -2,8 +2,8 @@ import "./react-micro.css";
 
 function App() {
   return (
-    <div className="app">
-      <h1 className="app-h1">Hello, React Micro App</h1>
+    <div className="container">
+      <h1 className="h1">Hello, React Micro App</h1>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 <template>
-  <div id="app">
-    <h1 class="app-h1">Hello, Vue Micro App</h1>
+  <div id="container">
+    <h1 class="h1">Hello, Vue Micro App</h1>
   </div>
 </template>
 

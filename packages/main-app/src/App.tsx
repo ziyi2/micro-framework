@@ -6,7 +6,7 @@ function App() {
   return (
     <>
       {/* 新增一个 h1 标签，用于测试样式干扰 */}
-      <h1 className="app-h1">Hello, Main App</h1>
+      <h1 className="h1">Hello, Main App</h1>
       <div className="app">
         <div className="app-nav">
           <p>Micro App List</p>
