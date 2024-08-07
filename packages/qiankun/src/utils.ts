@@ -257,14 +257,18 @@ export function performanceMeasure(measureName: string, markName: string) {
 }
 
 export function isEnableScopedCSS(sandbox: FrameworkConfiguration['sandbox']) {
+  // 如果 sandbox 不是对象，则返回 false
   if (typeof sandbox !== 'object') {
     return false;
   }
 
+  // 如果开启了 Shadow DOM 沙箱，则返回 false
+  // Shadow DOM 隔离的优先级更高
   if (sandbox.strictStyleIsolation) {
     return false;
   }
 
+  // 判断是否开启了 Scoped CSS 沙箱
   return !!sandbox.experimentalStyleIsolation;
 }
 

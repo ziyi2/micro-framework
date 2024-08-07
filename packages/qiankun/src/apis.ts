@@ -24,21 +24,27 @@ const defaultUrlRerouteOnly = true;
 const frameworkStartedDefer = new Deferred<void>();
 
 const autoDowngradeForLowVersionBrowser = (configuration: FrameworkConfiguration): FrameworkConfiguration => {
+  // singular 和 sandbox 默认为 true
   const { sandbox = true, singular } = configuration;
+  // 如果 sandbox 为 true，或者 sandbox 为对象，则判断浏览器是否支持 Proxy
   if (sandbox) {
+    // 如果浏览器不支持 Proxy，则提示警告信息
     if (!window.Proxy) {
       console.warn('[qiankun] Missing window.Proxy, proxySandbox will degenerate into snapshotSandbox');
 
+      // 如果 singular 为 false，则提示警告信息
       if (singular === false) {
         console.warn(
           '[qiankun] Setting singular as false may cause unexpected behavior while your browser not support window.Proxy',
         );
       }
 
+      // 返回处理后的沙箱配置, 将 sandbox.loose 设置为 true
       return { ...configuration, sandbox: typeof sandbox === 'object' ? { ...sandbox, loose: true } : { loose: true } };
     }
 
     if (
+      // 是否支持对象解构赋值，如果不支持，则关闭 speedy 模式
       !isConstDestructAssignmentSupported() &&
       (sandbox === true || (typeof sandbox === 'object' && sandbox.speedy !== false))
     ) {
@@ -46,6 +52,7 @@ const autoDowngradeForLowVersionBrowser = (configuration: FrameworkConfiguration
         '[qiankun] Speedy mode will turn off as const destruct assignment not supported in current browser!',
       );
 
+      // 返回处理后的沙箱配置, 将 sandbox.speedy 设置为 false
       return {
         ...configuration,
         sandbox: typeof sandbox === 'object' ? { ...sandbox, speedy: false } : { speedy: false },
@@ -53,6 +60,7 @@ const autoDowngradeForLowVersionBrowser = (configuration: FrameworkConfiguration
     }
   }
 
+  // 返回原始的沙箱配置
   return configuration;
 };
 

@@ -72,8 +72,8 @@ async function validateSingularMode<T extends ObjectType>(
 const supportShadowDOM = !!document.head.attachShadow || !!(document.head as any).createShadowRoot;
 
 // appContent: 微应用的字符串内容
-// strictStyleIsolation: 是否启用严格样式隔离, 无沙箱模式下为 false
-// scopedCSS: 是否启用 Scoped 样式隔离, 无沙箱模式下为 false
+// strictStyleIsolation: 是否启用严格样式隔离
+// scopedCSS: 是否启用 Scoped 样式隔离
 // appInstanceId: app 实例 id，例如 vue
 function createElement(
   appContent: string,
@@ -176,36 +176,43 @@ function createElement(
 
   // 这里的 containerElement.firstChild 即为 <div id="__qiankun_microapp_wrapper_for_vue__" data-name="vue" data-version="2.10.16" data-sandbox-cfg=false>
   const appElement = containerElement.firstChild as HTMLElement;
-  // 无沙箱模式下，不启用严格样式隔离和 Scoped 样式隔离，暂时忽略
+  // 启用 Shadow DOM 隔离
   if (strictStyleIsolation) {
+    // 如果浏览器不支持 Shadow DOM，则打印警告信息
     if (!supportShadowDOM) {
       console.warn(
         '[qiankun]: As current browser not support shadow dom, your strictStyleIsolation configuration will be ignored!',
       );
     } else {
+      // 缓存 appElement 的所有子元素
       const { innerHTML } = appElement;
+      // 清空 appElement 的所有子元素
       appElement.innerHTML = '';
       let shadow: ShadowRoot;
 
       if (appElement.attachShadow) {
+        // 在 appElement 上创建一个 Shadow DOM
         shadow = appElement.attachShadow({ mode: 'open' });
       } else {
         // createShadowRoot was proposed in initial spec, which has then been deprecated
         shadow = (appElement as any).createShadowRoot();
       }
+      // 将 appElement 的所有子元素添加到 Shadow DOM 中
       shadow.innerHTML = innerHTML;
     }
   }
 
-  // 无沙箱模式下，不启用 Scoped 样式隔离，暂时忽略
+  // 启用 Scoped 样式隔离
   if (scopedCSS) {
     const attr = appElement.getAttribute(css.QiankunCSSRewriteAttr);
     if (!attr) {
       appElement.setAttribute(css.QiankunCSSRewriteAttr, appInstanceId);
     }
-
+    // 获取所有的内联样式节点
     const styleNodes = appElement.querySelectorAll('style') || [];
+    // 遍历内联样式节点
     forEach(styleNodes, (stylesheetElement: HTMLStyleElement) => {
+      // 处理内联样式节点，将所有的样式进行 Scoped 处理
       css.process(appElement!, stylesheetElement, appInstanceId);
     });
   }
@@ -239,12 +246,12 @@ function getAppWrapperGetter(
     // 如果 element 不存在，则抛出异常
     assertElementExist(element, `Wrapper element for ${appInstanceId} is not existed!`);
 
-    // 暂无沙箱，暂时忽略
+    // 如果启用了 Shadow DOM 隔离，则返回 Shadow DOM
     if (strictStyleIsolation && supportShadowDOM) {
       return element!.shadowRoot!;
     }
 
-    // 返回 DOM 元素
+    // 否则返回 DOM 元素
     return element!;
   };
 }
@@ -657,7 +664,7 @@ export async function loadApp<T extends ObjectType>(
 
   const appContent = getDefaultTplWrapper(appInstanceId, sandbox)(template);
 
-  // 无沙箱模式下 sandbox = false，因此 strictStyleIsolation = false
+  // 判断是否启用 Shadow DOM 隔离
   const strictStyleIsolation = typeof sandbox === 'object' && !!sandbox.strictStyleIsolation;
 
   if (process.env.NODE_ENV === 'development' && strictStyleIsolation) {
@@ -666,7 +673,7 @@ export async function loadApp<T extends ObjectType>(
     );
   }
 
-  // 无沙箱模式下 sandbox = false，因此 scopedCSS = false
+  // 判断是否启用 Scoped 样式隔离
   const scopedCSS = isEnableScopedCSS(sandbox);
 
   // 将 appContent 字符串转换成 DOM 节点
@@ -674,9 +681,9 @@ export async function loadApp<T extends ObjectType>(
   let initialAppWrapperElement: HTMLElement | null = createElement(
     // 微应用的内容
     appContent,
-    // 是否启用严格样式隔离, 无沙箱模式下为 false
+    // 是否启用严格样式隔离
     strictStyleIsolation,
-    // 是否启用 Scoped 样式隔离, 无沙箱模式下为 false
+    // 是否启用 Scoped 样式隔离
     scopedCSS,
     // app 实例 id，例如 vue
     appInstanceId,
@@ -707,9 +714,9 @@ export async function loadApp<T extends ObjectType>(
     appInstanceId,
     // 是否是自定义的 render 函数，默认为 undefined
     !!legacyRender,
-    // 是否启用严格样式隔离, 无沙箱模式下为 false
+    // 是否启用严格样式隔离
     strictStyleIsolation,
-    // 是否启用 Scoped 样式隔离, 无沙箱模式下为 false
+    // 是否启用 Scoped 样式隔离
     scopedCSS,
     // elementGetter 用于获取微应用的 DOM 元素，即 <div id="__qiankun_microapp_wrapper_for_vue__" data-name="vue" data-version="2.10.16" data-sandbox-cfg=false>
     () => initialAppWrapperElement,
@@ -719,21 +726,25 @@ export async function loadApp<T extends ObjectType>(
   let global = globalContext;
   let mountSandbox = () => Promise.resolve();
   let unmountSandbox = () => Promise.resolve();
-  // 无沙箱模式下，sandbox 为 false，不启用沙箱
+  // 默认情况下，useLooseSandbox 为 true
   const useLooseSandbox = typeof sandbox === 'object' && !!sandbox.loose;
   // enable speedy mode by default
-  // 无沙箱模式下，speedySandbox 为 true
+  // 默认情况下，speedySandbox 为 true
   const speedySandbox = typeof sandbox === 'object' ? sandbox.speedy !== false : true;
   let sandboxContainer;
-  // 无沙箱模式下，sandbox 为 false，不启用沙箱，暂时忽略
+  // 启用沙箱模式
   if (sandbox) {
+    // 创建沙箱容器
     sandboxContainer = createSandboxContainer(
+      // app 实例 id，例如 vue
       appInstanceId,
       // FIXME should use a strict sandbox logic while remount, see https://github.com/umijs/qiankun/issues/518
       initialAppWrapperGetter,
+      // 是否启用了 Scoped 样式隔离
       scopedCSS,
       useLooseSandbox,
       excludeAssetFilter,
+      // 传入全局对象
       global,
       speedySandbox,
     );
@@ -823,9 +834,9 @@ export async function loadApp<T extends ObjectType>(
             appInstanceId,
             // 是否是自定义的 render 函数，默认为 undefined
             !!legacyRender,
-            // 是否启用严格样式隔离, 无沙箱模式下为 false
+            // 是否启用严格样式隔离
             strictStyleIsolation,
-            // 是否启用 Scoped 样式隔离, 无沙箱模式下为 false
+            // 是否启用 Scoped 样式隔离
             scopedCSS,
             // elementGetter 用于获取微应用的 DOM 元素，即 <div id="__qiankun_microapp_wrapper_for_vue__" data-name="vue" data-version="2.10.16" data-sandbox-cfg=false>
             () => appWrapperElement,

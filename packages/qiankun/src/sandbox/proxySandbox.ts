@@ -178,11 +178,13 @@ export default class ProxySandbox implements SandBox {
   sandboxRunning = true;
   latestSetProp: PropertyKey | null = null;
 
+  // 激活沙箱
   active() {
     if (!this.sandboxRunning) activeSandboxCount++;
     this.sandboxRunning = true;
   }
 
+  // 停止沙箱
   inactive() {
     if (process.env.NODE_ENV === 'development') {
       console.info(`[qiankun:sandbox] ${this.name} modified global properties restore...`, [

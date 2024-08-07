@@ -41,10 +41,15 @@ export function createSandboxContainer(
   speedySandBox?: boolean,
 ) {
   let sandbox: SandBox;
+  // 判断浏览器是否支持 Proxy
   if (window.Proxy) {
+    // 如果是 useLooseSandbox 为 true，则使用 LegacySandbox，否则使用 ProxySandbox
+    // 默认情况下 useLooseSandbox 为 false，即使用 ProxySandbox
     sandbox = useLooseSandbox
       ? new LegacySandbox(appName, globalContext)
-      : new ProxySandbox(appName, globalContext, { speedy: !!speedySandBox });
+      : // speedySandBox 为 true，则使用 ProxySandbox
+        new ProxySandbox(appName, globalContext, { speedy: !!speedySandBox });
+    // 如果浏览器不支持 Proxy，则使用 SnapshotSandbox
   } else {
     sandbox = new SnapshotSandbox(appName);
   }
