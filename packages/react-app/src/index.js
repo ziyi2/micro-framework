@@ -31,9 +31,9 @@ export async function mount(props) {
   // 因此可以从 container 中获取到 #root 节点挂载 react 应用
   root = ReactDOM.createRoot(props.container.querySelector("#root"));
   root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
+    // <React.StrictMode>
+    <App />
+    // </React.StrictMode>
   );
 }
 

@@ -3,9 +3,9 @@
  * @since 2019-04-11
  */
 import type { Freer, Rebuilder, SandBox } from '../interfaces';
-import LegacySandbox from './legacy/sandbox';
+// import LegacySandbox from './legacy/sandbox';
 import { patchAtBootstrapping, patchAtMounting } from './patchers';
-import ProxySandbox from './proxySandbox';
+// import ProxySandbox from './proxySandbox';
 import SnapshotSandbox from './snapshotSandbox';
 
 export { getCurrentRunningApp } from './common';
@@ -26,33 +26,35 @@ export { css } from './patchers';
  * @param appName
  * @param elementGetter
  * @param scopedCSS
- * @param useLooseSandbox
+ * @param _useLooseSandbox
  * @param excludeAssetFilter
- * @param globalContext
+ * @param _globalContext
  * @param speedySandBox
  */
 export function createSandboxContainer(
   appName: string,
   elementGetter: () => HTMLElement | ShadowRoot,
   scopedCSS: boolean,
-  useLooseSandbox?: boolean,
+  _useLooseSandbox?: boolean,
   excludeAssetFilter?: (url: string) => boolean,
-  globalContext?: typeof window,
+  _globalContext?: typeof window,
   speedySandBox?: boolean,
 ) {
   let sandbox: SandBox;
-  // 判断浏览器是否支持 Proxy
-  if (window.Proxy) {
-    // 如果是 useLooseSandbox 为 true，则使用 LegacySandbox，否则使用 ProxySandbox
-    // 默认情况下 useLooseSandbox 为 false，即使用 ProxySandbox
-    sandbox = useLooseSandbox
-      ? new LegacySandbox(appName, globalContext)
-      : // speedySandBox 为 true，则使用 ProxySandbox
-        new ProxySandbox(appName, globalContext, { speedy: !!speedySandBox });
-    // 如果浏览器不支持 Proxy，则使用 SnapshotSandbox
-  } else {
-    sandbox = new SnapshotSandbox(appName);
-  }
+  // // 判断浏览器是否支持 Proxy
+  // if (window.Proxy) {
+  //   // 如果是 useLooseSandbox 为 true，则使用 LegacySandbox，否则使用 ProxySandbox
+  //   // 默认情况下 useLooseSandbox 为 false，即使用 ProxySandbox
+  //   sandbox = useLooseSandbox
+  //     ? new LegacySandbox(appName, globalContext)
+  //     : // speedySandBox 为 true，则使用 ProxySandbox
+  //       new ProxySandbox(appName, globalContext, { speedy: !!speedySandBox });
+  //   // 如果浏览器不支持 Proxy，则使用 SnapshotSandbox
+  // } else {
+  //   sandbox = new SnapshotSandbox(appName);
+  // }
+
+  sandbox = new SnapshotSandbox(appName);
 
   // some side effect could be invoked while bootstrapping, such as dynamic stylesheet injection with style-loader, especially during the development phase
   const bootstrappingFreers = patchAtBootstrapping(
