@@ -16,7 +16,12 @@ export async function bootstrap() {
 }
 
 export async function mount(props) {
-  console.log("[Vue 子应用] mount excuted, props: ", props);
+  // 下一次进入时，查看 window.micro 的值
+  console.log("window.micro", window.micro);
+
+  // 变更 window 属性
+  window.micro = "micro-vue";
+
   app = createApp(App);
   // qiankun 在注册 vue 子应用时会通过 props 传递 container
   // Vue CLI 生成的项目中应用的挂载节点是 #app（可以查看 public/index.html）

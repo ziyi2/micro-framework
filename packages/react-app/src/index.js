@@ -24,17 +24,18 @@ export async function bootstrap() {
 }
 
 export async function mount(props) {
-  console.log("[React 子应用] mount excuted, props: ", props);
+  // 下一次进入时，查看 window.micro 的值
+  console.log("window.micro", window.micro);
+
+  // 变更 window 属性
+  window.micro = "micro-react";
+
   // qiankun 在注册 react 子应用时会通过 props 传递 container
   // Creact React App 自带的 HTML 模版的挂载节点是 #root（可以查看 public/index.html）
   // 由于微应用的 HTML 内容会挂载在 container 上
   // 因此可以从 container 中获取到 #root 节点挂载 react 应用
   root = ReactDOM.createRoot(props.container.querySelector("#root"));
-  root.render(
-    // <React.StrictMode>
-    <App />
-    // </React.StrictMode>
-  );
+  root.render(<App />);
 }
 
 export async function unmount(props) {
