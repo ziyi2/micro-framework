@@ -4,9 +4,5 @@ export function registerQiankunMicroApps(
   microApps: RegistrableApp<{ microContainer: string }>[]
 ) {
   registerMicroApps(microApps);
-  start({
-    sandbox: {
-      loose: true,
-    },
-  });
+  start();
 }
