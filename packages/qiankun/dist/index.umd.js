@@ -4960,353 +4960,6 @@
 	  SandBoxType["LegacyProxy"] = "LegacyProxy";
 	})(exports.SandBoxType || (exports.SandBoxType = {}));
 
-	/**
-	 * @author Saviio
-	 * @since 2020-4-19
-	 */
-	// https://developer.mozilla.org/en-US/docs/Web/API/CSSRule
-	var RuleType;
-	(function (RuleType) {
-	  // type: rule will be rewrote
-	  RuleType[RuleType["STYLE"] = 1] = "STYLE";
-	  RuleType[RuleType["MEDIA"] = 4] = "MEDIA";
-	  RuleType[RuleType["SUPPORTS"] = 12] = "SUPPORTS";
-	  // type: value will be kept
-	  RuleType[RuleType["IMPORT"] = 3] = "IMPORT";
-	  RuleType[RuleType["FONT_FACE"] = 5] = "FONT_FACE";
-	  RuleType[RuleType["PAGE"] = 6] = "PAGE";
-	  RuleType[RuleType["KEYFRAMES"] = 7] = "KEYFRAMES";
-	  RuleType[RuleType["KEYFRAME"] = 8] = "KEYFRAME";
-	})(RuleType || (RuleType = {}));
-	const arrayify = list => {
-	  return [].slice.call(list, 0);
-	};
-	const rawDocumentBodyAppend = HTMLBodyElement.prototype.appendChild;
-	class ScopedCSS {
-	  constructor() {
-	    this.sheet = void 0;
-	    this.swapNode = void 0;
-	    // 创建一个 style 标签
-	    const styleNode = document.createElement('style');
-	    // 将 style 标签插入到 body 的底部
-	    rawDocumentBodyAppend.call(document.body, styleNode);
-	    // 缓存 style 标签
-	    this.swapNode = styleNode;
-	    // 获取 style 标签的 CSS 样式表
-	    // https://developer.mozilla.org/zh-CN/docs/Web/API/CSSStyleSheet
-	    this.sheet = styleNode.sheet;
-	    // 初始化时禁用 style 样式，防止样式直接生效
-	    // 详见：https://developer.mozilla.org/zh-CN/docs/Web/API/StyleSheet/disabled
-	    this.sheet.disabled = true;
-	  }
-	  process(styleNode, prefix = '') {
-	    // 如果内联样式标签已经处理过，则直接返回
-	    if (ScopedCSS.ModifiedTag in styleNode) {
-	      return;
-	    }
-	    // 如果 style 标签的内容不为空，则进行 ScopedCSS 处理
-	    if (styleNode.textContent !== '') {
-	      var _sheet$cssRules;
-	      // 根据 style 标签的内容生成一个文本节点
-	      const textNode = document.createTextNode(styleNode.textContent || '');
-	      // 将文本节点添加到 swapNode (构造函数中创建的 style 标签)中
-	      this.swapNode.appendChild(textNode);
-	      // 获取 swapNode 的 CSS 样式表
-	      // https://developer.mozilla.org/zh-CN/docs/Web/API/CSSStyleSheet
-	      const sheet = this.swapNode.sheet; // type is missing
-	      // 获取 swapNode 的 CSS 样式规则列表
-	      // cssRules: https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/cssRules
-	      // CSSRuleList: https://developer.mozilla.org/zh-CN/docs/Web/API/CSSRuleList
-	      // cssRules 是一个只读属性，返回一个包含样式表中所有规则的 CSSRuleList 类数组对象
-	      // 将 swapNode 的 CSS 样式规则列表（类数组对象）转换为数组
-	      const rules = arrayify((_sheet$cssRules = sheet === null || sheet === void 0 ? void 0 : sheet.cssRules) !== null && _sheet$cssRules !== void 0 ? _sheet$cssRules : []);
-	      // 对所有的 CSS 规则进行 ScopedCSS 处理，生成新的 CSS 样式
-	      const css = this.rewrite(rules, prefix);
-	      // eslint-disable-next-line no-param-reassign
-	      styleNode.textContent = css;
-	      // cleanup
-	      // 移除 swapNode 中的文本节点
-	      this.swapNode.removeChild(textNode);
-	      // 标记 style 标签已经被 ScopedCSS 处理过
-	      styleNode[ScopedCSS.ModifiedTag] = true;
-	      return;
-	    }
-	    // 如果 style 标签的内容为空，则监听 style 标签的变化
-	    const mutator = new MutationObserver(mutations => {
-	      for (let i = 0; i < mutations.length; i += 1) {
-	        const mutation = mutations[i];
-	        // 如果 style 标签已经被 ScopedCSS 处理过，则直接返回
-	        if (ScopedCSS.ModifiedTag in styleNode) {
-	          return;
-	        }
-	        if (mutation.type === 'childList') {
-	          var _sheet$cssRules2;
-	          // 将 CSSRuleList 转换成 Array
-	          const sheet = styleNode.sheet;
-	          // 对样式进行 scope 处理
-	          const rules = arrayify((_sheet$cssRules2 = sheet === null || sheet === void 0 ? void 0 : sheet.cssRules) !== null && _sheet$cssRules2 !== void 0 ? _sheet$cssRules2 : []);
-	          const css = this.rewrite(rules, prefix);
-	          // 重新设置 style 标签的内容
-	          // eslint-disable-next-line no-param-reassign
-	          styleNode.textContent = css;
-	          // 标记 style 标签已经被 ScopedCSS 处理过
-	          // eslint-disable-next-line no-param-reassign
-	          styleNode[ScopedCSS.ModifiedTag] = true;
-	        }
-	      }
-	    });
-	    // since observer will be deleted when node be removed
-	    // we dont need create a cleanup function manually
-	    // see https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver/disconnect
-	    mutator.observe(styleNode, {
-	      childList: true
-	    });
-	  }
-	  rewrite(rules, prefix = '') {
-	    let css = '';
-	    // CSSRule: https://developer.mozilla.org/zh-CN/docs/Web/API/CSSRule
-	    rules.forEach(rule => {
-	      // rule.type 包含了 CSS 规则的类型，例如：样式规则、媒体查询规则、支持规则、导入规则、字体规则等
-	      // interface CSSRule {
-	      //   const unsigned short STYLE_RULE = 1;
-	      //   const unsigned short CHARSET_RULE = 2;
-	      //   const unsigned short IMPORT_RULE = 3;
-	      //   const unsigned short MEDIA_RULE = 4;
-	      //   const unsigned short FONT_FACE_RULE = 5;
-	      //   const unsigned short PAGE_RULE = 6;
-	      //   const unsigned short KEYFRAMES_RULE = 7;
-	      //   const unsigned short KEYFRAME_RULE = 8;
-	      //   const unsigned short NAMESPACE_RULE = 10;
-	      //   const unsigned short COUNTER_STYLE_RULE = 11;
-	      //   const unsigned short SUPPORTS_RULE = 12;
-	      //   const unsigned short DOCUMENT_RULE = 13;
-	      //   const unsigned short FONT_FEATURE_VALUES_RULE = 14;
-	      //   const unsigned short VIEWPORT_RULE = 15;
-	      //   const unsigned short REGION_STYLE_RULE = 16;
-	      //   readonly attribute unsigned short type;
-	      //   attribute DOMString cssText;
-	      //   readonly attribute CSSRule? parentRule;
-	      //   readonly attribute CSSStyleSheet? parentStyleSheet;
-	      // };
-	      switch (rule.type) {
-	        // 如果是样式规则，则调用 ruleStyle 方法处理
-	        // 例如 .app-main {}
-	        case RuleType.STYLE:
-	          css += this.ruleStyle(rule, prefix);
-	          break;
-	        // 如果是媒体查询规则，则调用 ruleMedia 方法处理
-	        // 例如 @media screen and (max-width: 300px) {}
-	        case RuleType.MEDIA:
-	          css += this.ruleMedia(rule, prefix);
-	          break;
-	        // 如果是支持规则，则调用 ruleSupport 方法处理
-	        // 例如 @supports (display: grid) {}
-	        case RuleType.SUPPORTS:
-	          css += this.ruleSupport(rule, prefix);
-	          break;
-	        // 其他情况直接拼接 cssText
-	        default:
-	          if (typeof rule.cssText === 'string') {
-	            css += `${rule.cssText}`;
-	          }
-	          break;
-	      }
-	    });
-	    return css;
-	  }
-	  // handle case:
-	  // .app-main {}
-	  // html, body {}
-	  // eslint-disable-next-line class-methods-use-this
-	  // prefix 示例: div[data-qiankun="vue"]（Vue 微应用）
-	  ruleStyle(rule, prefix) {
-	    const rootSelectorRE = /((?:[^\w\-.#]|^)(body|html|:root))/gm;
-	    const rootCombinationRE = /(html[^\w{[]+)/gm;
-	    // 例如样式 h1 { background-color: #f0f0f0; }
-	    // 获取样式选择器的文本内容，例如 h1
-	    const selector = rule.selectorText.trim();
-	    let cssText = '';
-	    if (typeof rule.cssText === 'string') {
-	      // 获取样式规则的文本内容，例如 h1 { background-color: #f0f0f0; }
-	      cssText = rule.cssText;
-	    }
-	    // handle html { ... }
-	    // handle body { ... }
-	    // handle :root { ... }
-	    // 1. 单独匹配 html、body、:root 根选择器
-	    if (selector === 'html' || selector === 'body' || selector === ':root') {
-	      // rootSelectorRE: 匹配 html、body、:root
-	      // /((?:[^\w\-.#]|^)(body|html|:root))/gm
-	      // 匹配 body、html、:root
-	      // 正则表达式可以分为以下几个部分：
-	      // 1. (?:[^\w\-.#]|^): 匹配除了字母、数字、下划线、连字符、点、井号之外的字符或者开头
-	      //  1.1 () 为捕获组，(?:) 为非捕获组
-	      //  1.2 [^\w\-.#]: 匹配除了字母、数字、下划线、连字符、点、井号之外的字符
-	      //    1.2.1 []: 匹配方括号内的任意字符
-	      //    1.2.2 ^: 在方括号表达式中使用，表示匹配不在该字符集合中的字符
-	      //    1.2.3 \w: 匹配任何字母数字字符，等价于 [A-Za-z0-9_]
-	      //    1.2.4 \-.#: 匹配连字符、点、井号
-	      //  1.3 |: 或者
-	      //  1.4 ^: 匹配开头
-	      // 匹配 body { margin: 0px; } 中的 body
-	      // body { margin: 4px; } 被替换成 div[data-name="vue"] { margin: 4px; }
-	      // body 样式是根样式，而在微应用中 body 对应的是 qiankun 的容器元素 div[data-name="vue"]
-	      // 因此需要将 body 样式替换成 div[data-name="vue"]
-	      return cssText.replace(rootSelectorRE, prefix);
-	    }
-	    // handle html body { ... }
-	    // handle html > body { ... }
-	    // 2. 匹配联合选择器，例如 html + body、html > body、html body，去除联合选择器中的 html、html > 等
-	    // /(html[^\w{[]+)/gm
-	    // 正则表达式可以分为以下几个部分：
-	    // 1. html: 匹配 html
-	    // 2. [^\w{]: 匹配除了字母、数字、下划线、左大括号之外的字符
-	    //  2.1 []: 匹配方括号内的任意字符
-	    //  2.2 ^: 在方括号表达式中使用，表示匹配不在该字符集合中的字符
-	    //  2.3 \w: 匹配任何字母数字字符，等价于 [A-Za-z0-9_]
-	    //  2.4 {: 匹配左大括号
-	    // 3. +: 表示匹配一个或多个
-	    // 匹配 html body 中 body 前面的部分（遇到 body 的首字母 b 结束匹配）
-	    // 匹配 html > body 中 body 前面的部分 html >（遇到 body 的首字母 b 结束匹配）
-	    if (rootCombinationRE.test(rule.selectorText)) {
-	      // /(html[^\w{]+)(\+|~)/
-	      // 正则表达式可以分为以下几个部分：
-	      // 1. html: 匹配 html
-	      // 2. [^\w{]+: 匹配 html 后面的除了字母、数字、下划线、左大括号之外的字符
-	      // 3. (\+|~): 匹配 + 或者 ~
-	      // 匹配兄弟选择器，例如 html + body、html ~ body
-	      const siblingSelectorRE = /(html[^\w{]+)(\+|~)/gm;
-	      // since html + body is a non-standard rule for html
-	      // transformer will ignore it
-	      if (!siblingSelectorRE.test(rule.selectorText)) {
-	        cssText = cssText.replace(rootCombinationRE, '');
-	      }
-	    }
-	    // handle grouping selector, a,span,p,div { ... }
-	    // /^[\s\S]+{/
-	    // 正则表达式可以分为以下几个部分：
-	    // 1. ^: 匹配开头
-	    // 2. [\s\S]: 匹配任意字符
-	    // 3. +: 匹配一个或多个
-	    // 4. {: 匹配左大括号
-	    // 匹配 a,span,p,div { ... } 中的 a,span,p,div {
-	    // 匹配 body { ... } 中的 body {
-	    // 匹配 h3[data-v-469af010] { ... } 中的 h3[data-v-469af010] {
-	    // 3. 处理分组选择器，例如 a,span,p,div { ... }，在选择器前面加上 div[data-qiankun="vue"]
-	    cssText = cssText.replace(/^[\s\S]+{/, selectors =>
-	    // selectors: a,span,p,div {
-	    // selectors: body {
-	    // 正则表达式 /(^|,\n?)([^,]+)/g 用于匹配以逗号分隔的选择器列表中的每个选择器。以下是详细解析：
-	    // (^|,\n?)：要么匹配字符串的开头，要么匹配逗号（逗号后可以携带换行符，换行符可选）。
-	    // ^：匹配字符串的开头。
-	    // |：表示逻辑“或”。
-	    // ,\n?：匹配逗号，逗号后可以有一个换行符（\n 是换行符，? 表示换行符是可选的）。
-	    // ([^,]+)：
-	    // [^,]：匹配除逗号之外的任何字符。
-	    // +：表示前面的字符可以出现一次或多次。
-	    // g：全局匹配标志，表示会匹配字符串中的所有符合条件的部分，而不仅仅是第一个。
-	    // 示例
-	    // 假设有以下 CSS 选择器字符串：
-	    // body,html,h1 { ... }
-	    // 正则表达式的匹配过程如下：
-	    // (^|,\n?) 会匹配字符串的开头或逗号（可选换行符）。
-	    // ([^,]+) 会匹配除逗号之外的字符。
-	    // 匹配结果：
-	    // body：匹配到的第一个选择器。
-	    // ,html：匹配到的第二个选择器（包括前面的逗号）。
-	    // ,h1：匹配到的第三个选择器（包括前面的逗号）。
-	    // replace 的第二个参数是一个函数，用于处理匹配到的字符串
-	    // item: 匹配到的字符串
-	    // p: 第一个捕获组
-	    // s: 第二个捕获组
-	    // 例如 body,html { 会匹配到 body 和 ,html {
-	    // 例如 h3[data-v-469af010] { 会匹配到 h3[data-v-469af010] {
-	    // 3.1 处理分组选择器，用 , 分割选择器
-	    selectors.replace(/(^|,\n?)([^,]+)/g, (item, p, s) => {
-	      // handle div,body,span { ... }
-	      // rootSelectorRE: 匹配 html、body、:root
-	      // /((?:[^\w\-.#]|^)(body|html|:root))/gm
-	      // 匹配 body、html、:root
-	      // 正则表达式可以分为以下几个部分：
-	      // 1. (?:[^\w\-.#]|^): 匹配除了字母、数字、下划线、连字符、点、井号之外的字符或者开头
-	      //  1.1 () 为捕获组，(?:) 为非捕获组
-	      //  1.2 [^\w\-.#]: 匹配除了字母、数字、下划线、连字符、点、井号之外的字符
-	      //    1.2.1 []: 匹配方括号内的任意字符
-	      //    1.2.2 ^: 在方括号表达式中使用，表示匹配不在该字符集合中的字符
-	      //    1.2.3 \w: 匹配任何字母数字字符，等价于 [A-Za-z0-9_]
-	      //    1.2.4 \-.#: 匹配连字符、点、井号
-	      //  1.3 |: 或者
-	      //  1.4 ^: 匹配开头
-	      // 例如：body  会被匹配
-	      // 例如 ,html { 会被匹配到
-	      // 3.1.1 如果匹配到的字符是 html、body、:root
-	      //       将其替换成 div[data-qiankun="vue"]
-	      if (rootSelectorRE.test(item)) {
-	        // 例如 body 会匹配到 body
-	        // 例如 , html { 会匹配到 html，注意 /((?:[^\w\-.#]|^)(body|html|:root))/gm 中的 (?:[^\w\-.#]|^) 不会捕获
-	        return item.replace(rootSelectorRE, m => {
-	          // do not discard valid previous character, such as body,html or *:not(:root)
-	          const whitePrevChars = [',', '('];
-	          if (m && whitePrevChars.includes(m[0])) {
-	            return `${m[0]}${prefix}`;
-	          }
-	          return prefix;
-	        });
-	      }
-	      // 3.1.2 如果匹配到的字符不是 html、body、:root，则插入 div[data-qiankun="vue"]
-	      //       例如 a,b 会被替换成 div[data-qiankun="vue"] a, div[data-qiankun="vue"] b
-	      // 这里的本质是为了在每一个选择器前面插入 div[data-qiankun="vue"]
-	      // replace root selector with prefix
-	      return `${p}${prefix} ${s.replace(/^ */, '')}`;
-	    }));
-	    return cssText;
-	  }
-	  // handle case:
-	  // @media screen and (max-width: 300px) {}
-	  ruleMedia(rule, prefix) {
-	    const css = this.rewrite(arrayify(rule.cssRules), prefix);
-	    return `@media ${rule.conditionText || rule.media.mediaText} {${css}}`;
-	  }
-	  // handle case:
-	  // @supports (display: grid) {}
-	  ruleSupport(rule, prefix) {
-	    const css = this.rewrite(arrayify(rule.cssRules), prefix);
-	    return `@supports ${rule.conditionText || rule.cssText.split('{')[0]} {${css}}`;
-	  }
-	}
-	ScopedCSS.ModifiedTag = 'Symbol(style-modified-qiankun)';
-	let processor;
-	const QiankunCSSRewriteAttr = 'data-qiankun';
-	const process = (appWrapper, stylesheetElement, appName) => {
-	  // lazy singleton pattern
-	  // 单例模式，只有在第一次调用时才会创建 ScopedCSS 实例
-	  // 之后的调用都会复用这个实例
-	  if (!processor) {
-	    processor = new ScopedCSS();
-	  }
-	  // 如果还有 link 外联样式标签，则警告提示
-	  // 理论上此时已经没有 link 外联样式标签了，因为 import-html-entry 会将外联样式标签转换为内联样式标签
-	  if (stylesheetElement.tagName === 'LINK') {
-	    console.warn('Feature: sandbox.experimentalStyleIsolation is not support for link element yet.');
-	  }
-	  // 如果没有 qiankun 容器元素，则直接返回
-	  // qiankun 容器元素：<div id="__qiankun_microapp_wrapper_for_vue__" data-name="vue" data-version="2.10.16" data-sandbox-cfg=false>
-	  const mountDOM = appWrapper;
-	  if (!mountDOM) {
-	    return;
-	  }
-	  // 获取 qiankun 容器的 tag 名称, 例如：div
-	  const tag = (mountDOM.tagName || '').toLowerCase();
-	  // 只有 style 标签对应的内联样式才会被处理
-	  if (tag && stylesheetElement.tagName === 'STYLE') {
-	    // 生成样式前缀, 例如：div[data-qiankun="vue"]
-	    // 用于匹配 qiankun 的容器元素 <div id="__qiankun_microapp_wrapper_for_vue__" data-name="vue" data-version="2.10.16" data-sandbox-cfg=false>
-	    const prefix = `${tag}[${QiankunCSSRewriteAttr}="${appName}"]`;
-	    // 处理内联样式
-	    processor.process(stylesheetElement, prefix);
-	  }
-	};
-
 	/** Used to match a single whitespace character. */
 	var reWhitespace = /\s/;
 
@@ -6067,6 +5720,49 @@
 	function toArray(array) {
 	  return Array.isArray(array) ? array : [array];
 	}
+	// Promise.then might be synchronized in Zone.js context, we need to use setTimeout instead to mock next tick.
+	// Since zone.js will hijack the setTimeout callback, and notify angular to do change detection, so we need to use the  __zone_symbol__setTimeout to avoid this, see https://github.com/umijs/qiankun/issues/2384
+	const nextTick = typeof window.__zone_symbol__setTimeout === 'function' ? window.__zone_symbol__setTimeout : cb => Promise.resolve().then(cb);
+	let globalTaskPending = false;
+	/**
+	 * Run a callback before next task executing, and the invocation is idempotent in every singular task
+	 * That means even we called nextTask multi times in one task, only the first callback will be pushed to nextTick to be invoked.
+	 * @param cb
+	 */
+	function nextTask(cb) {
+	  if (!globalTaskPending) {
+	    globalTaskPending = true;
+	    nextTick(() => {
+	      cb();
+	      globalTaskPending = false;
+	    });
+	  }
+	}
+	const fnRegexCheckCacheMap = new WeakMap();
+	function isConstructable(fn) {
+	  // prototype methods might be changed while code running, so we need check it every time
+	  const hasPrototypeMethods = fn.prototype && fn.prototype.constructor === fn && Object.getOwnPropertyNames(fn.prototype).length > 1;
+	  if (hasPrototypeMethods) return true;
+	  if (fnRegexCheckCacheMap.has(fn)) {
+	    return fnRegexCheckCacheMap.get(fn);
+	  }
+	  /*
+	    1. 有 prototype 并且 prototype 上有定义一系列非 constructor 属性
+	    2. 函数名大写开头
+	    3. class 函数
+	    满足其一则可认定为构造函数
+	   */
+	  let constructable = hasPrototypeMethods;
+	  if (!constructable) {
+	    // fn.toString has a significant performance overhead, if hasPrototypeMethods check not passed, we will check the function string with regex
+	    const fnString = fn.toString();
+	    const constructableFunctionRegex = /^function\b\s[A-Z].*/;
+	    const classRegex = /^class\b/;
+	    constructable = constructableFunctionRegex.test(fnString) || classRegex.test(fnString);
+	  }
+	  fnRegexCheckCacheMap.set(fn, constructable);
+	  return constructable;
+	}
 	const callableFnCacheMap = new WeakMap();
 	function isCallable(fn) {
 	  if (callableFnCacheMap.has(fn)) {
@@ -6082,6 +5778,21 @@
 	    callableFnCacheMap.set(fn, callable);
 	  }
 	  return callable;
+	}
+	const frozenPropertyCacheMap = new WeakMap();
+	function isPropertyFrozen(target, p) {
+	  if (!target || !p) {
+	    return false;
+	  }
+	  const targetPropertiesFromCache = frozenPropertyCacheMap.get(target) || {};
+	  if (targetPropertiesFromCache[p]) {
+	    return targetPropertiesFromCache[p];
+	  }
+	  const propertyDescriptor = Object.getOwnPropertyDescriptor(target, p);
+	  const frozen = Boolean(propertyDescriptor && propertyDescriptor.configurable === false && (propertyDescriptor.writable === false || propertyDescriptor.get && !propertyDescriptor.set));
+	  targetPropertiesFromCache[p] = frozen;
+	  frozenPropertyCacheMap.set(target, targetPropertiesFromCache);
+	  return frozen;
 	}
 	const boundedMap = new WeakMap();
 	function isBoundedFunction(fn) {
@@ -6254,6 +5965,608 @@
 	  }
 	  return undefined;
 	}
+
+	/**
+	 * @author Kuitos
+	 * @since 2020-04-13
+	 */
+	let currentRunningApp = null;
+	/**
+	 * get the app that running tasks at current tick
+	 */
+	function getCurrentRunningApp() {
+	  return currentRunningApp;
+	}
+	function setCurrentRunningApp(appInstance) {
+	  // Set currentRunningApp and it's proxySandbox to global window, as its only use case is for document.createElement from now on, which hijacked by a global way
+	  currentRunningApp = appInstance;
+	}
+	function clearCurrentRunningApp() {
+	  currentRunningApp = null;
+	}
+	const functionBoundedValueMap = new WeakMap();
+	function rebindTarget2Fn(target, fn) {
+	  /*
+	    仅绑定 isCallable && !isBoundedFunction && !isConstructable 的函数对象，如 window.console、window.atob 这类，不然微应用中调用时会抛出 Illegal invocation 异常
+	    目前没有完美的检测方式，这里通过 prototype 中是否还有可枚举的拓展方法的方式来判断
+	    @warning 这里不要随意替换成别的判断方式，因为可能触发一些 edge case（比如在 lodash.isFunction 在 iframe 上下文中可能由于调用了 top window 对象触发的安全异常）
+	   */
+	  if (isCallable(fn) && !isBoundedFunction(fn) && !isConstructable(fn)) {
+	    const cachedBoundFunction = functionBoundedValueMap.get(fn);
+	    if (cachedBoundFunction) {
+	      return cachedBoundFunction;
+	    }
+	    const boundValue = Function.prototype.bind.call(fn, target);
+	    // some callable function has custom fields, we need to copy the own props to boundValue. such as moment function.
+	    Object.getOwnPropertyNames(fn).forEach(key => {
+	      // boundValue might be a proxy, we need to check the key whether exist in it
+	      if (!boundValue.hasOwnProperty(key)) {
+	        Object.defineProperty(boundValue, key, Object.getOwnPropertyDescriptor(fn, key));
+	      }
+	    });
+	    // copy prototype if bound function not have but target one have
+	    // as prototype is non-enumerable mostly, we need to copy it from target function manually
+	    if (fn.hasOwnProperty('prototype') && !boundValue.hasOwnProperty('prototype')) {
+	      // we should not use assignment operator to set boundValue prototype like `boundValue.prototype = fn.prototype`
+	      // as the assignment will also look up prototype chain while it hasn't own prototype property,
+	      // when the lookup succeed, the assignment will throw an TypeError like `Cannot assign to read only property 'prototype' of function` if its descriptor configured with writable false or just have a getter accessor
+	      // see https://github.com/umijs/qiankun/issues/1121
+	      Object.defineProperty(boundValue, 'prototype', {
+	        value: fn.prototype,
+	        enumerable: false,
+	        writable: true
+	      });
+	    }
+	    // Some util, like `function isNative() {  return typeof Ctor === 'function' && /native code/.test(Ctor.toString()) }` relies on the original `toString()` result
+	    // but bound functions will always return "function() {[native code]}" for `toString`, which is misleading
+	    if (typeof fn.toString === 'function') {
+	      const valueHasInstanceToString = fn.hasOwnProperty('toString') && !boundValue.hasOwnProperty('toString');
+	      const boundValueHasPrototypeToString = boundValue.toString === Function.prototype.toString;
+	      if (valueHasInstanceToString || boundValueHasPrototypeToString) {
+	        const originToStringDescriptor = Object.getOwnPropertyDescriptor(valueHasInstanceToString ? fn : Function.prototype, 'toString');
+	        Object.defineProperty(boundValue, 'toString', Object.assign({}, originToStringDescriptor, (originToStringDescriptor === null || originToStringDescriptor === void 0 ? void 0 : originToStringDescriptor.get) ? null : {
+	          value: () => fn.toString()
+	        }));
+	      }
+	    }
+	    functionBoundedValueMap.set(fn, boundValue);
+	    return boundValue;
+	  }
+	  return fn;
+	}
+
+	const LogLevel = {
+	  SUCCESS: '[成功]',
+	  INFO: '[信息]',
+	  WARN: '[警告]',
+	  ERROR: '[错误]'
+	};
+	const LogColor = {
+	  SUCCESS: '#52c41a',
+	  INFO: '#1890ff',
+	  WARN: '#faad14',
+	  ERROR: '#f5222d'
+	};
+	const LogPrefix = {
+	  PROXY_SANDBOX: '[qiankun][proxySandbox]',
+	  LEGACY_SANDBOX: '[qiankun][legacySandbox]'
+	};
+	function log(level, color, prefix, message) {
+	  const style = `color: ${color};`;
+	  console.log(`%c${level}${prefix}`, style, message);
+	}
+	function info(prefix, message) {
+	  log(LogLevel.INFO, LogColor.INFO, prefix, message);
+	}
+
+	// 判断 window 对象的属性是否可配置
+	function isPropConfigurable(target, prop) {
+	  const descriptor = Object.getOwnPropertyDescriptor(target, prop);
+	  return descriptor ? descriptor.configurable : true;
+	}
+	/**
+	 * 基于 Proxy 实现的沙箱
+	 * TODO: 为了兼容性 singular 模式下依旧使用该沙箱，等新沙箱稳定之后再切换
+	 */
+	class LegacySandbox {
+	  setWindowProp(prop, value, toDelete) {
+	    // 如果值为 undefined 且需要删除，则删除该属性
+	    if (value === undefined && toDelete) {
+	      // eslint-disable-next-line no-param-reassign
+	      delete this.globalContext[prop];
+	      // 如果属性可配置并且不是 symbol，则定义该属性
+	    } else if (isPropConfigurable(this.globalContext, prop) && typeof prop !== 'symbol') {
+	      // 将属性定义为可配置，否则无法删除
+	      Object.defineProperty(this.globalContext, prop, {
+	        writable: true,
+	        configurable: true
+	      });
+	      // 设置属性值
+	      // eslint-disable-next-line no-param-reassign
+	      this.globalContext[prop] = value;
+	    }
+	  }
+	  // 激活沙箱
+	  active() {
+	    if (!this.sandboxRunning) {
+	      // 将新增和修改的属性同步到 window 对象中
+	      this.currentUpdatedPropsValueMap.forEach((v, p) => this.setWindowProp(p, v));
+	    }
+	    this.sandboxRunning = true;
+	  }
+	  // 失活沙箱
+	  inactive() {
+	    {
+	      console.info(`[qiankun:sandbox] ${this.name} modified global properties restore...`, [...this.addedPropsMapInSandbox.keys(), ...this.modifiedPropsOriginalValueMapInSandbox.keys()]);
+	    }
+	    // renderSandboxSnapshot = snapshot(currentUpdatedPropsValueMapForSnapshot);
+	    // restore global props to initial snapshot
+	    // 恢复微应用激活期间新增和修改的全局变量
+	    this.modifiedPropsOriginalValueMapInSandbox.forEach((v, p) => this.setWindowProp(p, v));
+	    // 删除微应用激活期间新增的全局变量
+	    // 注意必须将属性的描述符 configurable 设置为 true，否则无法删除
+	    this.addedPropsMapInSandbox.forEach((_, p) => this.setWindowProp(p, undefined, true));
+	    this.sandboxRunning = false;
+	  }
+	  constructor(name, globalContext = window) {
+	    /** 沙箱期间新增的全局变量 */
+	    this.addedPropsMapInSandbox = new Map();
+	    /** 沙箱期间更新的全局变量 */
+	    this.modifiedPropsOriginalValueMapInSandbox = new Map();
+	    /** 持续记录更新的(新增和修改的)全局变量的 map，用于在任意时刻做 snapshot */
+	    this.currentUpdatedPropsValueMap = new Map();
+	    this.name = void 0;
+	    this.proxy = void 0;
+	    this.globalContext = void 0;
+	    this.type = void 0;
+	    this.sandboxRunning = true;
+	    this.latestSetProp = null;
+	    // 微应用名称
+	    this.name = name;
+	    // 全局对象
+	    this.globalContext = globalContext;
+	    // 沙箱类型
+	    this.type = exports.SandBoxType.LegacyProxy;
+	    const addedPropsMapInSandbox = this.addedPropsMapInSandbox,
+	      modifiedPropsOriginalValueMapInSandbox = this.modifiedPropsOriginalValueMapInSandbox,
+	      currentUpdatedPropsValueMap = this.currentUpdatedPropsValueMap;
+	    // 原始的 window 对象
+	    const rawWindow = globalContext;
+	    // 代理对象
+	    // 注意使用 Object.create(null) 创建一个干净的对象，避免原型链污染
+	    // 查找属性时不会查找到原型链上的属性，能够提升性能
+	    const fakeWindow = Object.create(null);
+	    const setTrap = (p, value, originalValue, sync2Window = true) => {
+	      if (this.sandboxRunning) {
+	        // 如果原始 window 对象不存在该属性，则记录到新增属性 map 中
+	        if (!rawWindow.hasOwnProperty(p)) {
+	          addedPropsMapInSandbox.set(p, value);
+	          info(LogPrefix.LEGACY_SANDBOX + `[set][addedPropsMapInSandbox][${String(p)}] 设置的值: `, value);
+	          // 如果不是新增属性，说明属性存在于 window 对象中，那么记录到修改属性 map 中
+	          // 如果在修改属性 map 中已经记录过该属性，则不再记录
+	        } else if (!modifiedPropsOriginalValueMapInSandbox.has(p)) {
+	          // 如果当前 window 对象存在该属性，且 record map 中未记录过，则记录该属性初始值
+	          modifiedPropsOriginalValueMapInSandbox.set(p, originalValue);
+	          info(LogPrefix.LEGACY_SANDBOX + `[set][modifiedPropsOriginalValueMapInSandbox][${String(p)}] 设置的值: `, value);
+	        }
+	        // 无论是新增属性还是修改属性，都记录到当前更新属性 map 中
+	        currentUpdatedPropsValueMap.set(p, value);
+	        // 同步到原始 window 对象中
+	        if (sync2Window) {
+	          // 必须重新设置 window 对象保证下次 get 时能拿到已更新的数据
+	          rawWindow[p] = value;
+	        }
+	        // 记录最后一次更新的属性
+	        // 这里主要用于识别微应用导出的生命周期函数
+	        this.latestSetProp = p;
+	        return true;
+	      }
+	      {
+	        console.warn(`[qiankun] Set window.${p.toString()} while sandbox destroyed or inactive in ${name}!`);
+	      }
+	      // 在 strict-mode 下，Proxy 的 handler.set 返回 false 会抛出 TypeError，在沙箱卸载的情况下应该忽略错误
+	      return true;
+	    };
+	    // 微应用访问的 window 对象，本质上是这里的 proxy 代理对象
+	    const proxy = new Proxy(fakeWindow, {
+	      set: (_, p, value) => {
+	        const originalValue = rawWindow[p];
+	        return setTrap(p, value, originalValue, true);
+	      },
+	      get(_, p) {
+	        // avoid who using window.window or window.self to escape the sandbox environment to touch the really window
+	        // or use window.top to check if an iframe context
+	        // see https://github.com/eligrey/FileSaver.js/blob/master/src/FileSaver.js#L13
+	        // 避免使用 window.window 或 window.self 来逃逸沙箱环境以触达主应用的 window 对象
+	        // 或使用 window.top 来检查是否在 iframe 环境中
+	        if (p === 'top' || p === 'parent' || p === 'window' || p === 'self') {
+	          info(LogPrefix.LEGACY_SANDBOX, `[get][${String(p)}] 访问 proxy 代理对象`);
+	          return proxy;
+	        }
+	        const value = rawWindow[p];
+	        info(LogPrefix.LEGACY_SANDBOX + `[get][${String(p)}] 访问的值: `, value);
+	        return rebindTarget2Fn(rawWindow, value);
+	      },
+	      // trap in operator
+	      // see https://github.com/styled-components/styled-components/blob/master/packages/styled-components/src/constants.js#L12
+	      has(_, p) {
+	        info(LogPrefix.LEGACY_SANDBOX, `[has][拦截 in 和 with 操作符] has ${String(p)}`);
+	        return p in rawWindow;
+	      },
+	      getOwnPropertyDescriptor(_, p) {
+	        const descriptor = Object.getOwnPropertyDescriptor(rawWindow, p);
+	        // 详见：https://stackoverflow.com/questions/40921884/create-dynamic-non-configurable-properties-using-proxy
+	        // 详见：https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/getOwnPropertyDescriptor#invariants
+	        // 详见：https://262.ecma-international.org/7.0/#sec-invariants-of-the-essential-internal-methods
+	        // 如果属性不存在，那么不能将其设置为不可配置
+	        // A property cannot be reported as non-configurable, if it does not exists as an own property of the target object
+	        if (descriptor && !descriptor.configurable) {
+	          descriptor.configurable = true;
+	        }
+	        return descriptor;
+	      },
+	      defineProperty(_, p, attributes) {
+	        // 获取原始值
+	        const originalValue = rawWindow[p];
+	        // 定义属性
+	        const done = Reflect.defineProperty(rawWindow, p, attributes);
+	        // 获取新值
+	        const value = rawWindow[p];
+	        setTrap(p, value, originalValue, false);
+	        return done;
+	      }
+	    });
+	    this.proxy = proxy;
+	  }
+	  patchDocument() {}
+	}
+
+	/**
+	 * @author Saviio
+	 * @since 2020-4-19
+	 */
+	// https://developer.mozilla.org/en-US/docs/Web/API/CSSRule
+	var RuleType;
+	(function (RuleType) {
+	  // type: rule will be rewrote
+	  RuleType[RuleType["STYLE"] = 1] = "STYLE";
+	  RuleType[RuleType["MEDIA"] = 4] = "MEDIA";
+	  RuleType[RuleType["SUPPORTS"] = 12] = "SUPPORTS";
+	  // type: value will be kept
+	  RuleType[RuleType["IMPORT"] = 3] = "IMPORT";
+	  RuleType[RuleType["FONT_FACE"] = 5] = "FONT_FACE";
+	  RuleType[RuleType["PAGE"] = 6] = "PAGE";
+	  RuleType[RuleType["KEYFRAMES"] = 7] = "KEYFRAMES";
+	  RuleType[RuleType["KEYFRAME"] = 8] = "KEYFRAME";
+	})(RuleType || (RuleType = {}));
+	const arrayify = list => {
+	  return [].slice.call(list, 0);
+	};
+	const rawDocumentBodyAppend = HTMLBodyElement.prototype.appendChild;
+	class ScopedCSS {
+	  constructor() {
+	    this.sheet = void 0;
+	    this.swapNode = void 0;
+	    // 创建一个 style 标签
+	    const styleNode = document.createElement('style');
+	    // 将 style 标签插入到 body 的底部
+	    rawDocumentBodyAppend.call(document.body, styleNode);
+	    // 缓存 style 标签
+	    this.swapNode = styleNode;
+	    // 获取 style 标签的 CSS 样式表
+	    // https://developer.mozilla.org/zh-CN/docs/Web/API/CSSStyleSheet
+	    this.sheet = styleNode.sheet;
+	    // 初始化时禁用 style 样式，防止样式直接生效
+	    // 详见：https://developer.mozilla.org/zh-CN/docs/Web/API/StyleSheet/disabled
+	    this.sheet.disabled = true;
+	  }
+	  process(styleNode, prefix = '') {
+	    // 如果内联样式标签已经处理过，则直接返回
+	    if (ScopedCSS.ModifiedTag in styleNode) {
+	      return;
+	    }
+	    // 如果 style 标签的内容不为空，则进行 ScopedCSS 处理
+	    if (styleNode.textContent !== '') {
+	      var _sheet$cssRules;
+	      // 根据 style 标签的内容生成一个文本节点
+	      const textNode = document.createTextNode(styleNode.textContent || '');
+	      // 将文本节点添加到 swapNode (构造函数中创建的 style 标签)中
+	      this.swapNode.appendChild(textNode);
+	      // 获取 swapNode 的 CSS 样式表
+	      // https://developer.mozilla.org/zh-CN/docs/Web/API/CSSStyleSheet
+	      const sheet = this.swapNode.sheet; // type is missing
+	      // 获取 swapNode 的 CSS 样式规则列表
+	      // cssRules: https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/cssRules
+	      // CSSRuleList: https://developer.mozilla.org/zh-CN/docs/Web/API/CSSRuleList
+	      // cssRules 是一个只读属性，返回一个包含样式表中所有规则的 CSSRuleList 类数组对象
+	      // 将 swapNode 的 CSS 样式规则列表（类数组对象）转换为数组
+	      const rules = arrayify((_sheet$cssRules = sheet === null || sheet === void 0 ? void 0 : sheet.cssRules) !== null && _sheet$cssRules !== void 0 ? _sheet$cssRules : []);
+	      // 对所有的 CSS 规则进行 ScopedCSS 处理，生成新的 CSS 样式
+	      const css = this.rewrite(rules, prefix);
+	      // eslint-disable-next-line no-param-reassign
+	      styleNode.textContent = css;
+	      // cleanup
+	      // 移除 swapNode 中的文本节点
+	      this.swapNode.removeChild(textNode);
+	      // 标记 style 标签已经被 ScopedCSS 处理过
+	      styleNode[ScopedCSS.ModifiedTag] = true;
+	      return;
+	    }
+	    // 如果 style 标签的内容为空，则监听 style 标签的变化
+	    const mutator = new MutationObserver(mutations => {
+	      for (let i = 0; i < mutations.length; i += 1) {
+	        const mutation = mutations[i];
+	        // 如果 style 标签已经被 ScopedCSS 处理过，则直接返回
+	        if (ScopedCSS.ModifiedTag in styleNode) {
+	          return;
+	        }
+	        if (mutation.type === 'childList') {
+	          var _sheet$cssRules2;
+	          // 将 CSSRuleList 转换成 Array
+	          const sheet = styleNode.sheet;
+	          // 对样式进行 scope 处理
+	          const rules = arrayify((_sheet$cssRules2 = sheet === null || sheet === void 0 ? void 0 : sheet.cssRules) !== null && _sheet$cssRules2 !== void 0 ? _sheet$cssRules2 : []);
+	          const css = this.rewrite(rules, prefix);
+	          // 重新设置 style 标签的内容
+	          // eslint-disable-next-line no-param-reassign
+	          styleNode.textContent = css;
+	          // 标记 style 标签已经被 ScopedCSS 处理过
+	          // eslint-disable-next-line no-param-reassign
+	          styleNode[ScopedCSS.ModifiedTag] = true;
+	        }
+	      }
+	    });
+	    // since observer will be deleted when node be removed
+	    // we dont need create a cleanup function manually
+	    // see https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver/disconnect
+	    mutator.observe(styleNode, {
+	      childList: true
+	    });
+	  }
+	  rewrite(rules, prefix = '') {
+	    let css = '';
+	    // CSSRule: https://developer.mozilla.org/zh-CN/docs/Web/API/CSSRule
+	    rules.forEach(rule => {
+	      // rule.type 包含了 CSS 规则的类型，例如：样式规则、媒体查询规则、支持规则、导入规则、字体规则等
+	      // interface CSSRule {
+	      //   const unsigned short STYLE_RULE = 1;
+	      //   const unsigned short CHARSET_RULE = 2;
+	      //   const unsigned short IMPORT_RULE = 3;
+	      //   const unsigned short MEDIA_RULE = 4;
+	      //   const unsigned short FONT_FACE_RULE = 5;
+	      //   const unsigned short PAGE_RULE = 6;
+	      //   const unsigned short KEYFRAMES_RULE = 7;
+	      //   const unsigned short KEYFRAME_RULE = 8;
+	      //   const unsigned short NAMESPACE_RULE = 10;
+	      //   const unsigned short COUNTER_STYLE_RULE = 11;
+	      //   const unsigned short SUPPORTS_RULE = 12;
+	      //   const unsigned short DOCUMENT_RULE = 13;
+	      //   const unsigned short FONT_FEATURE_VALUES_RULE = 14;
+	      //   const unsigned short VIEWPORT_RULE = 15;
+	      //   const unsigned short REGION_STYLE_RULE = 16;
+	      //   readonly attribute unsigned short type;
+	      //   attribute DOMString cssText;
+	      //   readonly attribute CSSRule? parentRule;
+	      //   readonly attribute CSSStyleSheet? parentStyleSheet;
+	      // };
+	      switch (rule.type) {
+	        // 如果是样式规则，则调用 ruleStyle 方法处理
+	        // 例如 .app-main {}
+	        case RuleType.STYLE:
+	          css += this.ruleStyle(rule, prefix);
+	          break;
+	        // 如果是媒体查询规则，则调用 ruleMedia 方法处理
+	        // 例如 @media screen and (max-width: 300px) {}
+	        case RuleType.MEDIA:
+	          css += this.ruleMedia(rule, prefix);
+	          break;
+	        // 如果是支持规则，则调用 ruleSupport 方法处理
+	        // 例如 @supports (display: grid) {}
+	        case RuleType.SUPPORTS:
+	          css += this.ruleSupport(rule, prefix);
+	          break;
+	        // 其他情况直接拼接 cssText
+	        default:
+	          if (typeof rule.cssText === 'string') {
+	            css += `${rule.cssText}`;
+	          }
+	          break;
+	      }
+	    });
+	    return css;
+	  }
+	  // handle case:
+	  // .app-main {}
+	  // html, body {}
+	  // eslint-disable-next-line class-methods-use-this
+	  // prefix 示例: div[data-qiankun="vue"]（Vue 微应用）
+	  ruleStyle(rule, prefix) {
+	    const rootSelectorRE = /((?:[^\w\-.#]|^)(body|html|:root))/gm;
+	    const rootCombinationRE = /(html[^\w{[]+)/gm;
+	    // 例如样式 h1 { background-color: #f0f0f0; }
+	    // 获取样式选择器的文本内容，例如 h1
+	    const selector = rule.selectorText.trim();
+	    let cssText = '';
+	    if (typeof rule.cssText === 'string') {
+	      // 获取样式规则的文本内容，例如 h1 { background-color: #f0f0f0; }
+	      cssText = rule.cssText;
+	    }
+	    // handle html { ... }
+	    // handle body { ... }
+	    // handle :root { ... }
+	    // 1. 单独匹配 html、body、:root 根选择器
+	    if (selector === 'html' || selector === 'body' || selector === ':root') {
+	      // rootSelectorRE: 匹配 html、body、:root
+	      // /((?:[^\w\-.#]|^)(body|html|:root))/gm
+	      // 匹配 body、html、:root
+	      // 正则表达式可以分为以下几个部分：
+	      // 1. (?:[^\w\-.#]|^): 匹配除了字母、数字、下划线、连字符、点、井号之外的字符或者开头
+	      //  1.1 () 为捕获组，(?:) 为非捕获组
+	      //  1.2 [^\w\-.#]: 匹配除了字母、数字、下划线、连字符、点、井号之外的字符
+	      //    1.2.1 []: 匹配方括号内的任意字符
+	      //    1.2.2 ^: 在方括号表达式中使用，表示匹配不在该字符集合中的字符
+	      //    1.2.3 \w: 匹配任何字母数字字符，等价于 [A-Za-z0-9_]
+	      //    1.2.4 \-.#: 匹配连字符、点、井号
+	      //  1.3 |: 或者
+	      //  1.4 ^: 匹配开头
+	      // 匹配 body { margin: 0px; } 中的 body
+	      // body { margin: 4px; } 被替换成 div[data-name="vue"] { margin: 4px; }
+	      // body 样式是根样式，而在微应用中 body 对应的是 qiankun 的容器元素 div[data-name="vue"]
+	      // 因此需要将 body 样式替换成 div[data-name="vue"]
+	      return cssText.replace(rootSelectorRE, prefix);
+	    }
+	    // handle html body { ... }
+	    // handle html > body { ... }
+	    // 2. 匹配联合选择器，例如 html + body、html > body、html body，去除联合选择器中的 html、html > 等
+	    // /(html[^\w{[]+)/gm
+	    // 正则表达式可以分为以下几个部分：
+	    // 1. html: 匹配 html
+	    // 2. [^\w{]: 匹配除了字母、数字、下划线、左大括号之外的字符
+	    //  2.1 []: 匹配方括号内的任意字符
+	    //  2.2 ^: 在方括号表达式中使用，表示匹配不在该字符集合中的字符
+	    //  2.3 \w: 匹配任何字母数字字符，等价于 [A-Za-z0-9_]
+	    //  2.4 {: 匹配左大括号
+	    // 3. +: 表示匹配一个或多个
+	    // 匹配 html body 中 body 前面的部分（遇到 body 的首字母 b 结束匹配）
+	    // 匹配 html > body 中 body 前面的部分 html >（遇到 body 的首字母 b 结束匹配）
+	    if (rootCombinationRE.test(rule.selectorText)) {
+	      // /(html[^\w{]+)(\+|~)/
+	      // 正则表达式可以分为以下几个部分：
+	      // 1. html: 匹配 html
+	      // 2. [^\w{]+: 匹配 html 后面的除了字母、数字、下划线、左大括号之外的字符
+	      // 3. (\+|~): 匹配 + 或者 ~
+	      // 匹配兄弟选择器，例如 html + body、html ~ body
+	      const siblingSelectorRE = /(html[^\w{]+)(\+|~)/gm;
+	      // since html + body is a non-standard rule for html
+	      // transformer will ignore it
+	      if (!siblingSelectorRE.test(rule.selectorText)) {
+	        cssText = cssText.replace(rootCombinationRE, '');
+	      }
+	    }
+	    // handle grouping selector, a,span,p,div { ... }
+	    // /^[\s\S]+{/
+	    // 正则表达式可以分为以下几个部分：
+	    // 1. ^: 匹配开头
+	    // 2. [\s\S]: 匹配任意字符
+	    // 3. +: 匹配一个或多个
+	    // 4. {: 匹配左大括号
+	    // 匹配 a,span,p,div { ... } 中的 a,span,p,div {
+	    // 匹配 body { ... } 中的 body {
+	    // 匹配 h3[data-v-469af010] { ... } 中的 h3[data-v-469af010] {
+	    // 3. 处理分组选择器，例如 a,span,p,div { ... }，在选择器前面加上 div[data-qiankun="vue"]
+	    cssText = cssText.replace(/^[\s\S]+{/, selectors =>
+	    // selectors: a,span,p,div {
+	    // selectors: body {
+	    // 正则表达式 /(^|,\n?)([^,]+)/g 用于匹配以逗号分隔的选择器列表中的每个选择器。以下是详细解析：
+	    // (^|,\n?)：要么匹配字符串的开头，要么匹配逗号（逗号后可以携带换行符，换行符可选）。
+	    // ^：匹配字符串的开头。
+	    // |：表示逻辑“或”。
+	    // ,\n?：匹配逗号，逗号后可以有一个换行符（\n 是换行符，? 表示换行符是可选的）。
+	    // ([^,]+)：
+	    // [^,]：匹配除逗号之外的任何字符。
+	    // +：表示前面的字符可以出现一次或多次。
+	    // g：全局匹配标志，表示会匹配字符串中的所有符合条件的部分，而不仅仅是第一个。
+	    // 示例
+	    // 假设有以下 CSS 选择器字符串：
+	    // body,html,h1 { ... }
+	    // 正则表达式的匹配过程如下：
+	    // (^|,\n?) 会匹配字符串的开头或逗号（可选换行符）。
+	    // ([^,]+) 会匹配除逗号之外的字符。
+	    // 匹配结果：
+	    // body：匹配到的第一个选择器。
+	    // ,html：匹配到的第二个选择器（包括前面的逗号）。
+	    // ,h1：匹配到的第三个选择器（包括前面的逗号）。
+	    // replace 的第二个参数是一个函数，用于处理匹配到的字符串
+	    // item: 匹配到的字符串
+	    // p: 第一个捕获组
+	    // s: 第二个捕获组
+	    // 例如 body,html { 会匹配到 body 和 ,html {
+	    // 例如 h3[data-v-469af010] { 会匹配到 h3[data-v-469af010] {
+	    // 3.1 处理分组选择器，用 , 分割选择器
+	    selectors.replace(/(^|,\n?)([^,]+)/g, (item, p, s) => {
+	      // handle div,body,span { ... }
+	      // rootSelectorRE: 匹配 html、body、:root
+	      // /((?:[^\w\-.#]|^)(body|html|:root))/gm
+	      // 匹配 body、html、:root
+	      // 正则表达式可以分为以下几个部分：
+	      // 1. (?:[^\w\-.#]|^): 匹配除了字母、数字、下划线、连字符、点、井号之外的字符或者开头
+	      //  1.1 () 为捕获组，(?:) 为非捕获组
+	      //  1.2 [^\w\-.#]: 匹配除了字母、数字、下划线、连字符、点、井号之外的字符
+	      //    1.2.1 []: 匹配方括号内的任意字符
+	      //    1.2.2 ^: 在方括号表达式中使用，表示匹配不在该字符集合中的字符
+	      //    1.2.3 \w: 匹配任何字母数字字符，等价于 [A-Za-z0-9_]
+	      //    1.2.4 \-.#: 匹配连字符、点、井号
+	      //  1.3 |: 或者
+	      //  1.4 ^: 匹配开头
+	      // 例如：body  会被匹配
+	      // 例如 ,html { 会被匹配到
+	      // 3.1.1 如果匹配到的字符是 html、body、:root
+	      //       将其替换成 div[data-qiankun="vue"]
+	      if (rootSelectorRE.test(item)) {
+	        // 例如 body 会匹配到 body
+	        // 例如 , html { 会匹配到 html，注意 /((?:[^\w\-.#]|^)(body|html|:root))/gm 中的 (?:[^\w\-.#]|^) 不会捕获
+	        return item.replace(rootSelectorRE, m => {
+	          // do not discard valid previous character, such as body,html or *:not(:root)
+	          const whitePrevChars = [',', '('];
+	          if (m && whitePrevChars.includes(m[0])) {
+	            return `${m[0]}${prefix}`;
+	          }
+	          return prefix;
+	        });
+	      }
+	      // 3.1.2 如果匹配到的字符不是 html、body、:root，则插入 div[data-qiankun="vue"]
+	      //       例如 a,b 会被替换成 div[data-qiankun="vue"] a, div[data-qiankun="vue"] b
+	      // 这里的本质是为了在每一个选择器前面插入 div[data-qiankun="vue"]
+	      // replace root selector with prefix
+	      return `${p}${prefix} ${s.replace(/^ */, '')}`;
+	    }));
+	    return cssText;
+	  }
+	  // handle case:
+	  // @media screen and (max-width: 300px) {}
+	  ruleMedia(rule, prefix) {
+	    const css = this.rewrite(arrayify(rule.cssRules), prefix);
+	    return `@media ${rule.conditionText || rule.media.mediaText} {${css}}`;
+	  }
+	  // handle case:
+	  // @supports (display: grid) {}
+	  ruleSupport(rule, prefix) {
+	    const css = this.rewrite(arrayify(rule.cssRules), prefix);
+	    return `@supports ${rule.conditionText || rule.cssText.split('{')[0]} {${css}}`;
+	  }
+	}
+	ScopedCSS.ModifiedTag = 'Symbol(style-modified-qiankun)';
+	let processor;
+	const QiankunCSSRewriteAttr = 'data-qiankun';
+	const process = (appWrapper, stylesheetElement, appName) => {
+	  // lazy singleton pattern
+	  // 单例模式，只有在第一次调用时才会创建 ScopedCSS 实例
+	  // 之后的调用都会复用这个实例
+	  if (!processor) {
+	    processor = new ScopedCSS();
+	  }
+	  // 如果还有 link 外联样式标签，则警告提示
+	  // 理论上此时已经没有 link 外联样式标签了，因为 import-html-entry 会将外联样式标签转换为内联样式标签
+	  if (stylesheetElement.tagName === 'LINK') {
+	    console.warn('Feature: sandbox.experimentalStyleIsolation is not support for link element yet.');
+	  }
+	  // 如果没有 qiankun 容器元素，则直接返回
+	  // qiankun 容器元素：<div id="__qiankun_microapp_wrapper_for_vue__" data-name="vue" data-version="2.10.16" data-sandbox-cfg=false>
+	  const mountDOM = appWrapper;
+	  if (!mountDOM) {
+	    return;
+	  }
+	  // 获取 qiankun 容器的 tag 名称, 例如：div
+	  const tag = (mountDOM.tagName || '').toLowerCase();
+	  // 只有 style 标签对应的内联样式才会被处理
+	  if (tag && stylesheetElement.tagName === 'STYLE') {
+	    // 生成样式前缀, 例如：div[data-qiankun="vue"]
+	    // 用于匹配 qiankun 的容器元素 <div id="__qiankun_microapp_wrapper_for_vue__" data-name="vue" data-version="2.10.16" data-sandbox-cfg=false>
+	    const prefix = `${tag}[${QiankunCSSRewriteAttr}="${appName}"]`;
+	    // 处理内联样式
+	    processor.process(stylesheetElement, prefix);
+	  }
+	};
 
 	/** Used to stand-in for `undefined` hash values. */
 	var HASH_UNDEFINED$2 = '__lodash_hash_undefined__';
@@ -6535,23 +6848,20 @@
 
 	var without_1 = without;
 
-	/**
-	 * @author Kuitos
-	 * @since 2020-04-13
-	 */
-	let currentRunningApp = null;
-	/**
-	 * get the app that running tasks at current tick
-	 */
-	function getCurrentRunningApp() {
-	  return currentRunningApp;
-	}
-
 	// generated from https://github.com/sindresorhus/globals/blob/main/globals.json es2015 part
 	// only init its values while Proxy is supported
 	const globalsInES2015 = window.Proxy ? ["Array", "ArrayBuffer", "Boolean", "constructor", "DataView", "Date", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Error", "escape", "eval", "EvalError", "Float32Array", "Float64Array", "Function", "hasOwnProperty", "Infinity", "Int16Array", "Int32Array", "Int8Array", "isFinite", "isNaN", "isPrototypeOf", "JSON", "Map", "Math", "NaN", "Number", "Object", "parseFloat", "parseInt", "Promise", "propertyIsEnumerable", "Proxy", "RangeError", "ReferenceError", "Reflect", "RegExp", "Set", "String", "Symbol", "SyntaxError", "toLocaleString", "toString", "TypeError", "Uint16Array", "Uint32Array", "Uint8Array", "Uint8ClampedArray", "undefined", "unescape", "URIError", "valueOf", "WeakMap", "WeakSet"].filter(p => /* just keep the available properties in current window context */p in window) : [];
 	const globalsInBrowser = ["AbortController", "AbortSignal", "addEventListener", "alert", "AnalyserNode", "Animation", "AnimationEffectReadOnly", "AnimationEffectTiming", "AnimationEffectTimingReadOnly", "AnimationEvent", "AnimationPlaybackEvent", "AnimationTimeline", "applicationCache", "ApplicationCache", "ApplicationCacheErrorEvent", "atob", "Attr", "Audio", "AudioBuffer", "AudioBufferSourceNode", "AudioContext", "AudioDestinationNode", "AudioListener", "AudioNode", "AudioParam", "AudioProcessingEvent", "AudioScheduledSourceNode", "AudioWorkletGlobalScope", "AudioWorkletNode", "AudioWorkletProcessor", "BarProp", "BaseAudioContext", "BatteryManager", "BeforeUnloadEvent", "BiquadFilterNode", "Blob", "BlobEvent", "blur", "BroadcastChannel", "btoa", "BudgetService", "ByteLengthQueuingStrategy", "Cache", "caches", "CacheStorage", "cancelAnimationFrame", "cancelIdleCallback", "CanvasCaptureMediaStreamTrack", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "ChannelMergerNode", "ChannelSplitterNode", "CharacterData", "clearInterval", "clearTimeout", "clientInformation", "ClipboardEvent", "ClipboardItem", "close", "closed", "CloseEvent", "Comment", "CompositionEvent", "CompressionStream", "confirm", "console", "ConstantSourceNode", "ConvolverNode", "CountQueuingStrategy", "createImageBitmap", "Credential", "CredentialsContainer", "crypto", "Crypto", "CryptoKey", "CSS", "CSSConditionRule", "CSSFontFaceRule", "CSSGroupingRule", "CSSImportRule", "CSSKeyframeRule", "CSSKeyframesRule", "CSSMatrixComponent", "CSSMediaRule", "CSSNamespaceRule", "CSSPageRule", "CSSPerspective", "CSSRotate", "CSSRule", "CSSRuleList", "CSSScale", "CSSSkew", "CSSSkewX", "CSSSkewY", "CSSStyleDeclaration", "CSSStyleRule", "CSSStyleSheet", "CSSSupportsRule", "CSSTransformValue", "CSSTranslate", "CustomElementRegistry", "customElements", "CustomEvent", "DataTransfer", "DataTransferItem", "DataTransferItemList", "DecompressionStream", "defaultstatus", "defaultStatus", "DelayNode", "DeviceMotionEvent", "DeviceOrientationEvent", "devicePixelRatio", "dispatchEvent", "document", "Document", "DocumentFragment", "DocumentType", "DOMError", "DOMException", "DOMImplementation", "DOMMatrix", "DOMMatrixReadOnly", "DOMParser", "DOMPoint", "DOMPointReadOnly", "DOMQuad", "DOMRect", "DOMRectList", "DOMRectReadOnly", "DOMStringList", "DOMStringMap", "DOMTokenList", "DragEvent", "DynamicsCompressorNode", "Element", "ErrorEvent", "event", "Event", "EventSource", "EventTarget", "external", "fetch", "File", "FileList", "FileReader", "find", "focus", "FocusEvent", "FontFace", "FontFaceSetLoadEvent", "FormData", "FormDataEvent", "frameElement", "frames", "GainNode", "Gamepad", "GamepadButton", "GamepadEvent", "getComputedStyle", "getSelection", "HashChangeEvent", "Headers", "history", "History", "HTMLAllCollection", "HTMLAnchorElement", "HTMLAreaElement", "HTMLAudioElement", "HTMLBaseElement", "HTMLBodyElement", "HTMLBRElement", "HTMLButtonElement", "HTMLCanvasElement", "HTMLCollection", "HTMLContentElement", "HTMLDataElement", "HTMLDataListElement", "HTMLDetailsElement", "HTMLDialogElement", "HTMLDirectoryElement", "HTMLDivElement", "HTMLDListElement", "HTMLDocument", "HTMLElement", "HTMLEmbedElement", "HTMLFieldSetElement", "HTMLFontElement", "HTMLFormControlsCollection", "HTMLFormElement", "HTMLFrameElement", "HTMLFrameSetElement", "HTMLHeadElement", "HTMLHeadingElement", "HTMLHRElement", "HTMLHtmlElement", "HTMLIFrameElement", "HTMLImageElement", "HTMLInputElement", "HTMLLabelElement", "HTMLLegendElement", "HTMLLIElement", "HTMLLinkElement", "HTMLMapElement", "HTMLMarqueeElement", "HTMLMediaElement", "HTMLMenuElement", "HTMLMetaElement", "HTMLMeterElement", "HTMLModElement", "HTMLObjectElement", "HTMLOListElement", "HTMLOptGroupElement", "HTMLOptionElement", "HTMLOptionsCollection", "HTMLOutputElement", "HTMLParagraphElement", "HTMLParamElement", "HTMLPictureElement", "HTMLPreElement", "HTMLProgressElement", "HTMLQuoteElement", "HTMLScriptElement", "HTMLSelectElement", "HTMLShadowElement", "HTMLSlotElement", "HTMLSourceElement", "HTMLSpanElement", "HTMLStyleElement", "HTMLTableCaptionElement", "HTMLTableCellElement", "HTMLTableColElement", "HTMLTableElement", "HTMLTableRowElement", "HTMLTableSectionElement", "HTMLTemplateElement", "HTMLTextAreaElement", "HTMLTimeElement", "HTMLTitleElement", "HTMLTrackElement", "HTMLUListElement", "HTMLUnknownElement", "HTMLVideoElement", "IDBCursor", "IDBCursorWithValue", "IDBDatabase", "IDBFactory", "IDBIndex", "IDBKeyRange", "IDBObjectStore", "IDBOpenDBRequest", "IDBRequest", "IDBTransaction", "IDBVersionChangeEvent", "IdleDeadline", "IIRFilterNode", "Image", "ImageBitmap", "ImageBitmapRenderingContext", "ImageCapture", "ImageData", "indexedDB", "innerHeight", "innerWidth", "InputEvent", "IntersectionObserver", "IntersectionObserverEntry", "Intl", "isSecureContext", "KeyboardEvent", "KeyframeEffect", "KeyframeEffectReadOnly", "length", "localStorage", "location", "Location", "locationbar", "matchMedia", "MediaDeviceInfo", "MediaDevices", "MediaElementAudioSourceNode", "MediaEncryptedEvent", "MediaError", "MediaKeyMessageEvent", "MediaKeySession", "MediaKeyStatusMap", "MediaKeySystemAccess", "MediaList", "MediaMetadata", "MediaQueryList", "MediaQueryListEvent", "MediaRecorder", "MediaSettingsRange", "MediaSource", "MediaStream", "MediaStreamAudioDestinationNode", "MediaStreamAudioSourceNode", "MediaStreamConstraints", "MediaStreamEvent", "MediaStreamTrack", "MediaStreamTrackEvent", "menubar", "MessageChannel", "MessageEvent", "MessagePort", "MIDIAccess", "MIDIConnectionEvent", "MIDIInput", "MIDIInputMap", "MIDIMessageEvent", "MIDIOutput", "MIDIOutputMap", "MIDIPort", "MimeType", "MimeTypeArray", "MouseEvent", "moveBy", "moveTo", "MutationEvent", "MutationObserver", "MutationRecord", "name", "NamedNodeMap", "NavigationPreloadManager", "navigator", "Navigator", "NavigatorUAData", "NetworkInformation", "Node", "NodeFilter", "NodeIterator", "NodeList", "Notification", "OfflineAudioCompletionEvent", "OfflineAudioContext", "offscreenBuffering", "OffscreenCanvas", "OffscreenCanvasRenderingContext2D", "onabort", "onafterprint", "onanimationend", "onanimationiteration", "onanimationstart", "onappinstalled", "onauxclick", "onbeforeinstallprompt", "onbeforeprint", "onbeforeunload", "onblur", "oncancel", "oncanplay", "oncanplaythrough", "onchange", "onclick", "onclose", "oncontextmenu", "oncuechange", "ondblclick", "ondevicemotion", "ondeviceorientation", "ondeviceorientationabsolute", "ondrag", "ondragend", "ondragenter", "ondragleave", "ondragover", "ondragstart", "ondrop", "ondurationchange", "onemptied", "onended", "onerror", "onfocus", "ongotpointercapture", "onhashchange", "oninput", "oninvalid", "onkeydown", "onkeypress", "onkeyup", "onlanguagechange", "onload", "onloadeddata", "onloadedmetadata", "onloadstart", "onlostpointercapture", "onmessage", "onmessageerror", "onmousedown", "onmouseenter", "onmouseleave", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmousewheel", "onoffline", "ononline", "onpagehide", "onpageshow", "onpause", "onplay", "onplaying", "onpointercancel", "onpointerdown", "onpointerenter", "onpointerleave", "onpointermove", "onpointerout", "onpointerover", "onpointerup", "onpopstate", "onprogress", "onratechange", "onrejectionhandled", "onreset", "onresize", "onscroll", "onsearch", "onseeked", "onseeking", "onselect", "onstalled", "onstorage", "onsubmit", "onsuspend", "ontimeupdate", "ontoggle", "ontransitionend", "onunhandledrejection", "onunload", "onvolumechange", "onwaiting", "onwheel", "open", "openDatabase", "opener", "Option", "origin", "OscillatorNode", "outerHeight", "outerWidth", "OverconstrainedError", "PageTransitionEvent", "pageXOffset", "pageYOffset", "PannerNode", "parent", "Path2D", "PaymentAddress", "PaymentRequest", "PaymentRequestUpdateEvent", "PaymentResponse", "performance", "Performance", "PerformanceEntry", "PerformanceLongTaskTiming", "PerformanceMark", "PerformanceMeasure", "PerformanceNavigation", "PerformanceNavigationTiming", "PerformanceObserver", "PerformanceObserverEntryList", "PerformancePaintTiming", "PerformanceResourceTiming", "PerformanceTiming", "PeriodicWave", "Permissions", "PermissionStatus", "personalbar", "PhotoCapabilities", "Plugin", "PluginArray", "PointerEvent", "PopStateEvent", "postMessage", "Presentation", "PresentationAvailability", "PresentationConnection", "PresentationConnectionAvailableEvent", "PresentationConnectionCloseEvent", "PresentationConnectionList", "PresentationReceiver", "PresentationRequest", "print", "ProcessingInstruction", "ProgressEvent", "PromiseRejectionEvent", "prompt", "PushManager", "PushSubscription", "PushSubscriptionOptions", "queueMicrotask", "RadioNodeList", "Range", "ReadableByteStreamController", "ReadableStream", "ReadableStreamBYOBReader", "ReadableStreamBYOBRequest", "ReadableStreamDefaultController", "ReadableStreamDefaultReader", "registerProcessor", "RemotePlayback", "removeEventListener", "reportError", "Request", "requestAnimationFrame", "requestIdleCallback", "resizeBy", "ResizeObserver", "ResizeObserverEntry", "resizeTo", "Response", "RTCCertificate", "RTCDataChannel", "RTCDataChannelEvent", "RTCDtlsTransport", "RTCIceCandidate", "RTCIceGatherer", "RTCIceTransport", "RTCPeerConnection", "RTCPeerConnectionIceEvent", "RTCRtpContributingSource", "RTCRtpReceiver", "RTCRtpSender", "RTCSctpTransport", "RTCSessionDescription", "RTCStatsReport", "RTCTrackEvent", "screen", "Screen", "screenLeft", "ScreenOrientation", "screenTop", "screenX", "screenY", "ScriptProcessorNode", "scroll", "scrollbars", "scrollBy", "scrollTo", "scrollX", "scrollY", "SecurityPolicyViolationEvent", "Selection", "self", "ServiceWorker", "ServiceWorkerContainer", "ServiceWorkerRegistration", "sessionStorage", "setInterval", "setTimeout", "ShadowRoot", "SharedWorker", "SourceBuffer", "SourceBufferList", "speechSynthesis", "SpeechSynthesisEvent", "SpeechSynthesisUtterance", "StaticRange", "status", "statusbar", "StereoPannerNode", "stop", "Storage", "StorageEvent", "StorageManager", "structuredClone", "styleMedia", "StyleSheet", "StyleSheetList", "SubmitEvent", "SubtleCrypto", "SVGAElement", "SVGAngle", "SVGAnimatedAngle", "SVGAnimatedBoolean", "SVGAnimatedEnumeration", "SVGAnimatedInteger", "SVGAnimatedLength", "SVGAnimatedLengthList", "SVGAnimatedNumber", "SVGAnimatedNumberList", "SVGAnimatedPreserveAspectRatio", "SVGAnimatedRect", "SVGAnimatedString", "SVGAnimatedTransformList", "SVGAnimateElement", "SVGAnimateMotionElement", "SVGAnimateTransformElement", "SVGAnimationElement", "SVGCircleElement", "SVGClipPathElement", "SVGComponentTransferFunctionElement", "SVGDefsElement", "SVGDescElement", "SVGDiscardElement", "SVGElement", "SVGEllipseElement", "SVGFEBlendElement", "SVGFEColorMatrixElement", "SVGFEComponentTransferElement", "SVGFECompositeElement", "SVGFEConvolveMatrixElement", "SVGFEDiffuseLightingElement", "SVGFEDisplacementMapElement", "SVGFEDistantLightElement", "SVGFEDropShadowElement", "SVGFEFloodElement", "SVGFEFuncAElement", "SVGFEFuncBElement", "SVGFEFuncGElement", "SVGFEFuncRElement", "SVGFEGaussianBlurElement", "SVGFEImageElement", "SVGFEMergeElement", "SVGFEMergeNodeElement", "SVGFEMorphologyElement", "SVGFEOffsetElement", "SVGFEPointLightElement", "SVGFESpecularLightingElement", "SVGFESpotLightElement", "SVGFETileElement", "SVGFETurbulenceElement", "SVGFilterElement", "SVGForeignObjectElement", "SVGGElement", "SVGGeometryElement", "SVGGradientElement", "SVGGraphicsElement", "SVGImageElement", "SVGLength", "SVGLengthList", "SVGLinearGradientElement", "SVGLineElement", "SVGMarkerElement", "SVGMaskElement", "SVGMatrix", "SVGMetadataElement", "SVGMPathElement", "SVGNumber", "SVGNumberList", "SVGPathElement", "SVGPatternElement", "SVGPoint", "SVGPointList", "SVGPolygonElement", "SVGPolylineElement", "SVGPreserveAspectRatio", "SVGRadialGradientElement", "SVGRect", "SVGRectElement", "SVGScriptElement", "SVGSetElement", "SVGStopElement", "SVGStringList", "SVGStyleElement", "SVGSVGElement", "SVGSwitchElement", "SVGSymbolElement", "SVGTextContentElement", "SVGTextElement", "SVGTextPathElement", "SVGTextPositioningElement", "SVGTitleElement", "SVGTransform", "SVGTransformList", "SVGTSpanElement", "SVGUnitTypes", "SVGUseElement", "SVGViewElement", "TaskAttributionTiming", "Text", "TextDecoder", "TextDecoderStream", "TextEncoder", "TextEncoderStream", "TextEvent", "TextMetrics", "TextTrack", "TextTrackCue", "TextTrackCueList", "TextTrackList", "TimeRanges", "ToggleEvent", "toolbar", "top", "Touch", "TouchEvent", "TouchList", "TrackEvent", "TransformStream", "TransformStreamDefaultController", "TransitionEvent", "TreeWalker", "UIEvent", "URL", "URLSearchParams", "ValidityState", "visualViewport", "VisualViewport", "VTTCue", "WaveShaperNode", "WebAssembly", "WebGL2RenderingContext", "WebGLActiveInfo", "WebGLBuffer", "WebGLContextEvent", "WebGLFramebuffer", "WebGLProgram", "WebGLQuery", "WebGLRenderbuffer", "WebGLRenderingContext", "WebGLSampler", "WebGLShader", "WebGLShaderPrecisionFormat", "WebGLSync", "WebGLTexture", "WebGLTransformFeedback", "WebGLUniformLocation", "WebGLVertexArrayObject", "WebSocket", "WheelEvent", "window", "Window", "Worker", "WritableStream", "WritableStreamDefaultController", "WritableStreamDefaultWriter", "XMLDocument", "XMLHttpRequest", "XMLHttpRequestEventTarget", "XMLHttpRequestUpload", "XMLSerializer", "XPathEvaluator", "XPathExpression", "XPathResult", "XRAnchor", "XRBoundedReferenceSpace", "XRCPUDepthInformation", "XRDepthInformation", "XRFrame", "XRInputSource", "XRInputSourceArray", "XRInputSourceEvent", "XRInputSourcesChangeEvent", "XRPose", "XRReferenceSpace", "XRReferenceSpaceEvent", "XRRenderState", "XRRigidTransform", "XRSession", "XRSessionEvent", "XRSpace", "XRSystem", "XRView", "XRViewerPose", "XRViewport", "XRWebGLBinding", "XRWebGLDepthInformation", "XRWebGLLayer", "XSLTProcessor"];
 
+	/**
+	 * fastest(at most time) unique array method
+	 * @see https://jsperf.com/array-filter-unique/30
+	 */
+	function uniq(array) {
+	  return array.filter(function filter(element) {
+	    return element in this ? false : this[element] = true;
+	  }, Object.create(null));
+	}
 	/**
 	 * transform array to object to enable faster element check with in operator
 	 * @param array
@@ -6568,6 +6878,26 @@
 	  Object.create(null));
 	}
 	const cachedGlobalsInBrowser = array2TruthyObject(globalsInBrowser.concat( []));
+	function isNativeGlobalProp(prop) {
+	  return prop in cachedGlobalsInBrowser;
+	}
+	// zone.js will overwrite Object.defineProperty
+	const rawObjectDefineProperty = Object.defineProperty;
+	const variableWhiteListInDev =  [
+	// for react hot reload
+	// see https://github.com/facebook/create-react-app/blob/66bf7dfc43350249e2f09d138a20840dae8a0a4a/packages/react-error-overlay/src/index.js#L180
+	'__REACT_ERROR_OVERLAY_GLOBAL_HOOK__',
+	// for react development event issue, see https://github.com/umijs/qiankun/issues/2375
+	'event'] ;
+	// who could escape the sandbox
+	const globalVariableWhiteList = [
+	// FIXME System.js used a indirect call with eval, which would make it scope escape to global
+	// To make System.js works well, we write it back to global window temporary
+	// see https://github.com/systemjs/systemjs/blob/457f5b7e8af6bd120a279540477552a07d5de086/src/evaluate.js#L106
+	'System',
+	// see https://github.com/systemjs/systemjs/blob/457f5b7e8af6bd120a279540477552a07d5de086/src/instantiate.js#L357
+	'__cjsWrapper', ...variableWhiteListInDev];
+	const inTest = "development" === 'test';
 	// these globals should be recorded while accessing every time
 	const accessingSpiedGlobals = ['document', 'top', 'parent', 'eval'];
 	const overwrittenGlobals = ['window', 'self', 'globalThis', 'hasOwnProperty'].concat( []);
@@ -6579,6 +6909,290 @@
 	 see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/unscopables
 	 */
 	const unscopables = array2TruthyObject(without_1(cachedGlobals, ...accessingSpiedGlobals.concat(overwrittenGlobals)));
+	const useNativeWindowForBindingsProps = new Map([['fetch', true], ['mockDomAPIInBlackList', "development" === 'test']]);
+	function createFakeWindow(globalContext, speedy) {
+	  // map always has the fastest performance in has checked scenario
+	  // see https://jsperf.com/array-indexof-vs-set-has/23
+	  const propertiesWithGetter = new Map();
+	  const fakeWindow = {};
+	  /*
+	   copy the non-configurable property of global to fakeWindow
+	   see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/handler/getOwnPropertyDescriptor
+	   > A property cannot be reported as non-configurable, if it does not exist as an own property of the target object or if it exists as a configurable own property of the target object.
+	   */
+	  Object.getOwnPropertyNames(globalContext).filter(p => {
+	    const descriptor = Object.getOwnPropertyDescriptor(globalContext, p);
+	    return !(descriptor === null || descriptor === void 0 ? void 0 : descriptor.configurable);
+	  }).forEach(p => {
+	    const descriptor = Object.getOwnPropertyDescriptor(globalContext, p);
+	    if (descriptor) {
+	      const hasGetter = Object.prototype.hasOwnProperty.call(descriptor, 'get');
+	      /*
+	       make top/self/window property configurable and writable, otherwise it will cause TypeError while get trap return.
+	       see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/handler/get
+	       > The value reported for a property must be the same as the value of the corresponding target object property if the target object property is a non-writable, non-configurable data property.
+	       */
+	      if (p === 'top' || p === 'parent' || p === 'self' || p === 'window' ||
+	      // window.document is overwriting in speedy mode
+	      p === 'document' && speedy || inTest ) {
+	        descriptor.configurable = true;
+	        /*
+	         The descriptor of window.window/window.top/window.self in Safari/FF are accessor descriptors, we need to avoid adding a data descriptor while it was
+	         Example:
+	          Safari/FF: Object.getOwnPropertyDescriptor(window, 'top') -> {get: function, set: undefined, enumerable: true, configurable: false}
+	          Chrome: Object.getOwnPropertyDescriptor(window, 'top') -> {value: Window, writable: false, enumerable: true, configurable: false}
+	         */
+	        if (!hasGetter) {
+	          descriptor.writable = true;
+	        }
+	      }
+	      if (hasGetter) propertiesWithGetter.set(p, true);
+	      // freeze the descriptor to avoid being modified by zone.js
+	      // see https://github.com/angular/zone.js/blob/a5fe09b0fac27ac5df1fa746042f96f05ccb6a00/lib/browser/define-property.ts#L71
+	      rawObjectDefineProperty(fakeWindow, p, Object.freeze(descriptor));
+	    }
+	  });
+	  return {
+	    fakeWindow,
+	    propertiesWithGetter
+	  };
+	}
+	let activeSandboxCount = 0;
+	/**
+	 * 基于 Proxy 实现的沙箱
+	 */
+	class ProxySandbox {
+	  // 激活沙箱
+	  active() {
+	    if (!this.sandboxRunning) activeSandboxCount++;
+	    this.sandboxRunning = true;
+	  }
+	  // 停止沙箱
+	  inactive() {
+	    {
+	      console.info(`[qiankun:sandbox] ${this.name} modified global properties restore...`, [...this.updatedValueSet.keys()]);
+	    }
+	    if ( --activeSandboxCount === 0) {
+	      // reset the global value to the prev value
+	      Object.keys(this.globalWhitelistPrevDescriptor).forEach(p => {
+	        const descriptor = this.globalWhitelistPrevDescriptor[p];
+	        if (descriptor) {
+	          Object.defineProperty(this.globalContext, p, descriptor);
+	        } else {
+	          // @ts-ignore
+	          delete this.globalContext[p];
+	        }
+	      });
+	    }
+	    this.sandboxRunning = false;
+	  }
+	  patchDocument(doc) {
+	    this.document = doc;
+	  }
+	  // the descriptor of global variables in whitelist before it been modified
+
+	  constructor(name, globalContext = window, opts) {
+	    /** window 值变更记录 */
+	    this.updatedValueSet = new Set();
+	    this.document = document;
+	    this.name = void 0;
+	    this.type = void 0;
+	    this.proxy = void 0;
+	    this.sandboxRunning = true;
+	    this.latestSetProp = null;
+	    this.globalWhitelistPrevDescriptor = {};
+	    this.globalContext = void 0;
+	    this.name = name;
+	    this.globalContext = globalContext;
+	    this.type = exports.SandBoxType.Proxy;
+	    const updatedValueSet = this.updatedValueSet;
+	    const _ref = opts || {},
+	      speedy = _ref.speedy;
+	    const _createFakeWindow = createFakeWindow(globalContext, !!speedy),
+	      fakeWindow = _createFakeWindow.fakeWindow,
+	      propertiesWithGetter = _createFakeWindow.propertiesWithGetter;
+	    const descriptorTargetMap = new Map();
+	    const proxy = new Proxy(fakeWindow, {
+	      set: (target, p, value) => {
+	        if (this.sandboxRunning) {
+	          this.registerRunningApp(name, proxy);
+	          // sync the property to globalContext
+	          if (typeof p === 'string' && globalVariableWhiteList.indexOf(p) !== -1) {
+	            this.globalWhitelistPrevDescriptor[p] = Object.getOwnPropertyDescriptor(globalContext, p);
+	            // @ts-ignore
+	            globalContext[p] = value;
+	          } else {
+	            // We must keep its description while the property existed in globalContext before
+	            if (!target.hasOwnProperty(p) && globalContext.hasOwnProperty(p)) {
+	              const descriptor = Object.getOwnPropertyDescriptor(globalContext, p);
+	              const writable = descriptor.writable,
+	                configurable = descriptor.configurable,
+	                enumerable = descriptor.enumerable,
+	                set = descriptor.set;
+	              // only writable property can be overwritten
+	              // here we ignored accessor descriptor of globalContext as it makes no sense to trigger its logic(which might make sandbox escaping instead)
+	              // we force to set value by data descriptor
+	              if (writable || set) {
+	                Object.defineProperty(target, p, {
+	                  configurable,
+	                  enumerable,
+	                  writable: true,
+	                  value
+	                });
+	              }
+	            } else {
+	              target[p] = value;
+	            }
+	          }
+	          updatedValueSet.add(p);
+	          this.latestSetProp = p;
+	          return true;
+	        }
+	        {
+	          console.warn(`[qiankun] Set window.${p.toString()} while sandbox destroyed or inactive in ${name}!`);
+	        }
+	        // 在 strict-mode 下，Proxy 的 handler.set 返回 false 会抛出 TypeError，在沙箱卸载的情况下应该忽略错误
+	        return true;
+	      },
+	      get: (target, p) => {
+	        this.registerRunningApp(name, proxy);
+	        if (p === Symbol.unscopables) return unscopables;
+	        // avoid who using window.window or window.self to escape the sandbox environment to touch the real window
+	        // see https://github.com/eligrey/FileSaver.js/blob/master/src/FileSaver.js#L13
+	        if (p === 'window' || p === 'self') {
+	          return proxy;
+	        }
+	        // hijack globalWindow accessing with globalThis keyword
+	        if (p === 'globalThis' || inTest ) {
+	          return proxy;
+	        }
+	        if (p === 'top' || p === 'parent' || inTest ) {
+	          // if your master app in an iframe context, allow these props escape the sandbox
+	          if (globalContext === globalContext.parent) {
+	            return proxy;
+	          }
+	          return globalContext[p];
+	        }
+	        // proxy.hasOwnProperty would invoke getter firstly, then its value represented as globalContext.hasOwnProperty
+	        if (p === 'hasOwnProperty') {
+	          return hasOwnProperty;
+	        }
+	        if (p === 'document') {
+	          return this.document;
+	        }
+	        if (p === 'eval') {
+	          return eval;
+	        }
+	        if (p === 'string' && globalVariableWhiteList.indexOf(p) !== -1) {
+	          // @ts-ignore
+	          return globalContext[p];
+	        }
+	        const actualTarget = propertiesWithGetter.has(p) ? globalContext : p in target ? target : globalContext;
+	        const value = actualTarget[p];
+	        // frozen value should return directly, see https://github.com/umijs/qiankun/issues/2015
+	        if (isPropertyFrozen(actualTarget, p)) {
+	          return value;
+	        }
+	        // non-native property return directly to avoid rebind
+	        if (!isNativeGlobalProp(p) && !useNativeWindowForBindingsProps.has(p)) {
+	          return value;
+	        }
+	        /* Some dom api must be bound to native window, otherwise it would cause exception like 'TypeError: Failed to execute 'fetch' on 'Window': Illegal invocation'
+	           See this code:
+	             const proxy = new Proxy(window, {});
+	             // in nest sandbox fetch will be bind to proxy rather than window in master
+	             const proxyFetch = fetch.bind(proxy);
+	             proxyFetch('https://qiankun.com');
+	        */
+	        const boundTarget = useNativeWindowForBindingsProps.get(p) ? nativeGlobal : globalContext;
+	        return rebindTarget2Fn(boundTarget, value);
+	      },
+	      // trap in operator
+	      // see https://github.com/styled-components/styled-components/blob/master/packages/styled-components/src/constants.js#L12
+	      has(target, p) {
+	        // property in cachedGlobalObjects must return true to avoid escape from get trap
+	        return p in cachedGlobalObjects || p in target || p in globalContext;
+	      },
+	      getOwnPropertyDescriptor(target, p) {
+	        /*
+	         as the descriptor of top/self/window/mockTop in raw window are configurable but not in proxy target, we need to get it from target to avoid TypeError
+	         see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/handler/getOwnPropertyDescriptor
+	         > A property cannot be reported as non-configurable, if it does not exist as an own property of the target object or if it exists as a configurable own property of the target object.
+	         */
+	        if (target.hasOwnProperty(p)) {
+	          const descriptor = Object.getOwnPropertyDescriptor(target, p);
+	          descriptorTargetMap.set(p, 'target');
+	          return descriptor;
+	        }
+	        if (globalContext.hasOwnProperty(p)) {
+	          const descriptor = Object.getOwnPropertyDescriptor(globalContext, p);
+	          descriptorTargetMap.set(p, 'globalContext');
+	          // A property cannot be reported as non-configurable, if it does not exist as an own property of the target object
+	          if (descriptor && !descriptor.configurable) {
+	            descriptor.configurable = true;
+	          }
+	          return descriptor;
+	        }
+	        return undefined;
+	      },
+	      // trap to support iterator with sandbox
+	      ownKeys(target) {
+	        return uniq(Reflect.ownKeys(globalContext).concat(Reflect.ownKeys(target)));
+	      },
+	      defineProperty: (target, p, attributes) => {
+	        const from = descriptorTargetMap.get(p);
+	        /*
+	         Descriptor must be defined to native window while it comes from native window via Object.getOwnPropertyDescriptor(window, p),
+	         otherwise it would cause a TypeError with illegal invocation.
+	         */
+	        switch (from) {
+	          case 'globalContext':
+	            return Reflect.defineProperty(globalContext, p, attributes);
+	          default:
+	            return Reflect.defineProperty(target, p, attributes);
+	        }
+	      },
+	      deleteProperty: (target, p) => {
+	        this.registerRunningApp(name, proxy);
+	        if (target.hasOwnProperty(p)) {
+	          // @ts-ignore
+	          delete target[p];
+	          updatedValueSet.delete(p);
+	          return true;
+	        }
+	        return true;
+	      },
+	      // makes sure `window instanceof Window` returns truthy in micro app
+	      getPrototypeOf() {
+	        return Reflect.getPrototypeOf(globalContext);
+	      }
+	    });
+	    this.proxy = proxy;
+	    activeSandboxCount++;
+	    function hasOwnProperty(key) {
+	      // calling from hasOwnProperty.call(obj, key)
+	      if (this !== proxy && this !== null && typeof this === 'object') {
+	        return Object.prototype.hasOwnProperty.call(this, key);
+	      }
+	      return fakeWindow.hasOwnProperty(key) || globalContext.hasOwnProperty(key);
+	    }
+	  }
+	  registerRunningApp(name, proxy) {
+	    if (this.sandboxRunning) {
+	      const currentRunningApp = getCurrentRunningApp();
+	      if (!currentRunningApp || currentRunningApp.name !== name) {
+	        setCurrentRunningApp({
+	          name,
+	          window: proxy
+	        });
+	      }
+	      // FIXME if you have any other good ideas
+	      // remove the mark in next tick, thus we can identify whether it in micro app or not
+	      // this approach is just a workaround, it could not cover all complex cases, such as the micro app runs in the same task context with master in some case
+	      nextTask(clearCurrentRunningApp);
+	    }
+	  }
+	}
 
 	const SCRIPT_TAG_NAME = 'SCRIPT';
 	const LINK_TAG_NAME = 'LINK';
@@ -7176,7 +7790,13 @@
 	    const rawDocumentCreateElement = document.createElement;
 	    Document.prototype.createElement = function createElement(tagName, options) {
 	      const element = rawDocumentCreateElement.call(this, tagName, options);
-	      if (isHijackingTag(tagName)) ;
+	      if (isHijackingTag(tagName)) {
+	        const _ref = getCurrentRunningApp() || {},
+	          currentRunningSandboxProxy = _ref.window;
+	        if (currentRunningSandboxProxy) {
+	          attachElementToProxy(element, currentRunningSandboxProxy);
+	        }
+	      }
 	      return element;
 	    };
 	    // It means it have been overwritten while createElement is an own property of document
@@ -7377,10 +7997,28 @@
 	  return (_patchersInSandbox$sa2 = patchersInSandbox[sandbox.type]) === null || _patchersInSandbox$sa2 === void 0 ? void 0 : _patchersInSandbox$sa2.map(patch => patch());
 	}
 
+	// packages/qiankun/src/sandbox/snapshotSandbox.ts
+	// 遍历 window 对象，将 window 对象的自有属性和方法都传入 callbackFn 中
 	function iter(obj, callbackFn) {
-	  // eslint-disable-next-line guard-for-in, no-restricted-syntax
+	  // const obj = {
+	  //   ownProp: 'I am an own property',
+	  // };
+	  // Object.prototype.protoProp = 'I am a prototype property';
+	  // console.log(obj.hasOwnProperty('ownProp')); // true
+	  // console.log(obj.hasOwnProperty('protoProp')); // false
+	  // console.log('protoProp' in obj); // true
 	  for (const prop in obj) {
+	    // 如果是对象自身的属性，或者是 clearInterval 方法，就调用 callbackFn
 	    // patch for clearInterval for compatible reason, see #1490
+	    // 为什么这里要判断 obj.hasOwnProperty(prop)？
+	    // 1. 通常情况下我们在设计微应用代码时，不会直接修改 window 对象的原型链上的属性，而是直接修改 window 对象自身的属性
+	    // 2. 原型链上的属性是共享的，如果记录了原型链上的属性，那么在恢复环境时，会影响到其他应用
+	    // 3. 可以减少快照沙箱的内存占用提高处理性能
+	    // 4. 处理原型链上的属性会增加复杂度，因为需要遍历整个原型链
+	    // 为什么这里要判断 clearInterval 方法？
+	    // 详见：https://github.com/umijs/qiankun/issues/872
+	    // 在开启沙箱之前，会 patch window 对象的 setInterval 和 clearInterval 方法
+	    // 详见 src/sandbox/patchers/interval.ts
 	    if (obj.hasOwnProperty(prop) || prop === 'clearInterval') {
 	      callbackFn(prop);
 	    }
@@ -7398,27 +8036,35 @@
 	    this.windowSnapshot = void 0;
 	    this.modifyPropsMap = {};
 	    this.name = name;
+	    // proxy 是 window 对象的代理对象
+	    // 在快照沙箱中，没有 proxy 代理功能，所以这里直接将 window 对象赋值给 proxy
 	    this.proxy = window;
 	    this.type = exports.SandBoxType.Snapshot;
 	  }
+	  // 微应用 mount 时触发，注意在微应用生命周期函数 mount 之前调用
 	  active() {
 	    // 记录当前快照
 	    this.windowSnapshot = {};
 	    iter(window, prop => {
+	      // 遍历 window 对象，记录微应用 mount 执行前的 window 快照
 	      this.windowSnapshot[prop] = window[prop];
 	    });
-	    // 恢复之前的变更
+	    // 恢复之前的变更（注意每一个微应用都会 new 一个新的 SnapshotSandbox 沙箱实例，所以这里的 modifyPropsMap 和微应用一一对应）
+	    // 这里的 modifyPropsMap 记录的是上一次微应用执行期间 window 对象的属性变更
 	    Object.keys(this.modifyPropsMap).forEach(p => {
 	      window[p] = this.modifyPropsMap[p];
 	    });
 	    this.sandboxRunning = true;
 	  }
+	  // 微应用 unmount 时触发，注意在微应用生命周期函数 unmount 之后调用
 	  inactive() {
 	    this.modifyPropsMap = {};
 	    iter(window, prop => {
+	      // 微应用卸载后，此时 window 对象可能存在一些属性被修改，需要将这些属性恢复到微应用 mount 执行前的快照
 	      if (window[prop] !== this.windowSnapshot[prop]) {
-	        // 记录变更，恢复环境
+	        // 记录微应用执行期间 window 对象的属性变更
 	        this.modifyPropsMap[prop] = window[prop];
+	        // 恢复 window 对象的快照
 	        window[prop] = this.windowSnapshot[prop];
 	      }
 	    });
@@ -7450,21 +8096,21 @@
 	 * @param _globalContext
 	 * @param speedySandBox
 	 */
-	function createSandboxContainer(appName, elementGetter, scopedCSS, _useLooseSandbox, excludeAssetFilter, _globalContext, speedySandBox) {
+	function createSandboxContainer(appName, elementGetter, scopedCSS, useLooseSandbox, excludeAssetFilter, globalContext, speedySandBox) {
 	  let sandbox;
-	  // // 判断浏览器是否支持 Proxy
-	  // if (window.Proxy) {
-	  //   // 如果是 useLooseSandbox 为 true，则使用 LegacySandbox，否则使用 ProxySandbox
-	  //   // 默认情况下 useLooseSandbox 为 false，即使用 ProxySandbox
-	  //   sandbox = useLooseSandbox
-	  //     ? new LegacySandbox(appName, globalContext)
-	  //     : // speedySandBox 为 true，则使用 ProxySandbox
-	  //       new ProxySandbox(appName, globalContext, { speedy: !!speedySandBox });
-	  //   // 如果浏览器不支持 Proxy，则使用 SnapshotSandbox
-	  // } else {
-	  //   sandbox = new SnapshotSandbox(appName);
-	  // }
-	  sandbox = new SnapshotSandbox(appName);
+	  // 判断浏览器是否支持 Proxy
+	  if (window.Proxy) {
+	    // 如果是 useLooseSandbox 为 true，则使用 LegacySandbox，否则使用 ProxySandbox
+	    // 默认情况下 useLooseSandbox 为 false，即使用 ProxySandbox
+	    sandbox = useLooseSandbox ? new LegacySandbox(appName, globalContext) :
+	    // speedySandBox 为 true，则使用 ProxySandbox
+	    new ProxySandbox(appName, globalContext, {
+	      speedy: !!speedySandBox
+	    });
+	    // 如果浏览器不支持 Proxy，则使用 SnapshotSandbox
+	  } else {
+	    sandbox = new SnapshotSandbox(appName);
+	  }
 	  // some side effect could be invoked while bootstrapping, such as dynamic stylesheet injection with style-loader, especially during the development phase
 	  const bootstrappingFreers = patchAtBootstrapping(appName, elementGetter, sandbox, scopedCSS, excludeAssetFilter, speedySandBox);
 	  // mounting freers are one-off and should be re-init at every mounting time

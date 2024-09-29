@@ -5,6 +5,8 @@ export function registerQiankunMicroApps(
 ) {
   registerMicroApps(microApps);
   start({
-    sandbox: true,
+    sandbox: {
+      loose: true,
+    },
   });
 }

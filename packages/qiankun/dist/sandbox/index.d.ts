@@ -25,7 +25,7 @@ export { css } from './patchers';
  * @param _globalContext
  * @param speedySandBox
  */
-export declare function createSandboxContainer(appName: string, elementGetter: () => HTMLElement | ShadowRoot, scopedCSS: boolean, _useLooseSandbox?: boolean, excludeAssetFilter?: (url: string) => boolean, _globalContext?: typeof window, speedySandBox?: boolean): {
+export declare function createSandboxContainer(appName: string, elementGetter: () => HTMLElement | ShadowRoot, scopedCSS: boolean, useLooseSandbox?: boolean, excludeAssetFilter?: (url: string) => boolean, globalContext?: typeof window, speedySandBox?: boolean): {
     instance: SandBox;
     /**
      * 沙箱被 mount

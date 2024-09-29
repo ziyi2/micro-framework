@@ -17,23 +17,23 @@ export const LogPrefix = {
   LEGACY_SANDBOX: '[qiankun][legacySandbox]',
 };
 
-function log(level, color, prefix, message) {
+function log(level: string, color: string, prefix: string, message: string) {
   const style = `color: ${color};`;
   console.log(`%c${level}${prefix}`, style, message);
 }
 
-export function success(prefix, message) {
+export function success(prefix: string, message: string) {
   log(LogLevel.SUCCESS, LogColor.SUCCESS, prefix, message);
 }
 
-export function info(prefix, message) {
+export function info(prefix: string, message: string) {
   log(LogLevel.INFO, LogColor.INFO, prefix, message);
 }
 
-export function warn(prefix, message) {
+export function warn(prefix: string, message: string) {
   log(LogLevel.WARN, LogColor.WARN, prefix, message);
 }
 
-export function error(prefix, message) {
+export function error(prefix: string, message: string) {
   log(LogLevel.ERROR, LogColor.ERROR, prefix, message);
 }
