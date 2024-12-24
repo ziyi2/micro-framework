@@ -6,7 +6,7 @@ import(/* webpackChunkName: "about" */ "./about.js").then((res) => {
   console.log(res);
 });
 
-if (!window.__POWERED_BY_QIANKUN__) {
+if (!window.__POWERED_BY_FRAMEWORK__) {
   app = createApp(App);
   app.mount("#app");
 }

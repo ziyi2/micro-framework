@@ -1,0 +1,65 @@
+{
+  "name": "micro-framework",
+  "version": "1.0.0",
+  "description": "深入浅出微前端",
+  "main": "lib/es/index.js",
+  "scripts": {
+    "start": "onchange 'src/**/*.ts' -- npm run build",
+    "build": "ts-node build/build.ts",
+    "release": "ts-node build/release.ts",
+    "lint": "eslint --ext .ts src test",
+    "prettier": "prettier src"
+  },
+  "config": {
+    "flat": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ziyi2/micro-framework.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ziyi2/micro-framework/issues"
+  },
+  "homepage": "https://github.com/ziyi2/micro-framework#readme",
+  "devDependencies": {
+    "@types/fs-extra": "11.0.1",
+    "@types/glob": "8.1.0",
+    "@types/gulp": "4.0.10",
+    "@types/merge2": "1.4.0",
+    "@types/node": "18.14.2",
+    "@types/node-fetch": "2.6.2",
+    "@types/semver": "7.3.13",
+    "@types/shelljs": "0.8.11",
+    "@typescript-eslint/eslint-plugin": "5.54.1",
+    "@typescript-eslint/parser": "5.54.1",
+    "chalk": "4.1.2",
+    "eslint": "8.35.0",
+    "eslint-config-prettier": "8.7.0",
+    "eslint-plugin-jest": "27.2.3",
+    "fs-extra": "11.1.0",
+    "glob": "9.0.1",
+    "gulp": "4.0.2",
+    "gulp-typescript": "6.0.0-alpha.1",
+    "merge2": "1.4.1",
+    "node-fetch": "2.6.7",
+    "onchange": "^7.1.0",
+    "prettier": "2.8.4",
+    "semver": "7.3.8",
+    "shelljs": "0.8.5",
+    "simple-git": "3.17.0",
+    "ts-node": "10.9.1",
+    "typescript": "4.9.5"
+  },
+  "engines": {
+    "node": ">=16.18.1"
+  },
+  "engineStrict": true,
+  "dependencies": {
+    "@types/lodash": "^4.17.13",
+    "import-html-entry": "1.17.0",
+    "lodash": "4.17.21",
+    "single-spa": "6.0.3"
+  }
+}

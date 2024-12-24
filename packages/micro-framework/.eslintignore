@@ -1,0 +1,6 @@
+lib
+node_modules
+.eslintrc.js
+.lintstagedrc.js
+commitlint.config.js
+jest.config.js

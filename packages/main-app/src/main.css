@@ -5,9 +5,9 @@
 /* 
  主应用样式，React 微应用有一个同样的类名 
 */
-.h1 {
+/* .h1 {
   color: red;
-}
+} */
 
 .app-nav {
   flex-basis: 200px;

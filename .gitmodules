@@ -1,3 +1,0 @@
-[submodule "submodules/single-spa"]
-	path = submodules/single-spa
-	url = https://github.com/single-spa/single-spa.git

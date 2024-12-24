@@ -1,27 +1,22 @@
 {
-  "name": "root",
+  "name": "micro-framework-example",
   "private": true,
-  "workspaces": {
-    "packages": [
-      "packages/*"
-    ],
-    "nohoist": [
-      "**/@types/node"
-    ]
-  },
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "bootstrap": "lerna bootstrap",
-    "clean": "lerna clean",
-    "start": "lerna run start",
-    "build": "lerna run build --scope react-micro-app --scope vue-micro-app",
-    "add": "lerna add @types/node --scope=qiankun --dev "
-  },
-  "devDependencies": {
-    "lerna": "6.3.0"
+    "start": "concurrently \"npm run start:main-app\" \"npm run start:react-app\" \"npm run start:vue-app\" \"npm run start:micro-framework\"",
+    "start:main-app": "npm run start --workspace=main-app",
+    "start:react-app": "npm run start --workspace=react-app",
+    "start:vue-app": "npm run start --workspace=vue-app",
+    "start:micro-framework": "npm run start --workspace=micro-framework"
   },
   "engines": {
     "node": ">=16"
   },
   "engineStrict": true,
-  "repository": "https://github.com/ziyi2/micro-framework.git"
+  "repository": "https://github.com/ziyi2/micro-framework.git",
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
 }
