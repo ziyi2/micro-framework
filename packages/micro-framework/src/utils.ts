@@ -1,5 +1,4 @@
 import isFunction from "lodash/isFunction";
-import { LifeCycles } from "single-spa";
 import { AppLifecycle } from "./interfaces";
 
 export const frameworkHeadTagName = "framework-head";
