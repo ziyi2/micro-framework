@@ -23,9 +23,8 @@ export async function mount(props) {
   window.micro = "micro-vue";
 
   app = createApp(App);
-  // qiankun 在注册 vue 子应用时会通过 props 传递 container
+  // micro-framework 在注册 vue 子应用时会通过 props 传递 container
   // Vue CLI 生成的项目中应用的挂载节点是 #app（可以查看 public/index.html）
-  // 由于微应用的 HTML 内容会挂载在 container 上
   // 因此可以从 container 中获取到 #app 节点挂载 Vue 应用
   app.mount(props.container.querySelector("#app"));
 }
