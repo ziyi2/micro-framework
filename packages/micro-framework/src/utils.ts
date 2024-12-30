@@ -18,7 +18,7 @@ export function getHtmlContent(appName: string, template: string): string {
   }
 
   // 给微应用的 HTML 添加一个容器元素，用于挂载微应用
-  // 在容器元素上添加微应用的标识和版本信息
+  // 在容器元素上添加微应用的标识信息
   return `<div data-framework-app="${appName}">${appContent}</div>`;
 }
 
