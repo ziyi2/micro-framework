@@ -23,6 +23,14 @@ module.exports = {
   // 层叠配置：停止向上遍历 ESLint 配置文件
   root: true,
   rules: {
+    "no-prototype-builtins": "off",
     "@typescript-eslint/unbound-method": "off",
-  }
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-implied-eval": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+  },
 };

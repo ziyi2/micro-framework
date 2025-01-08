@@ -6,10 +6,6 @@ import App from "./App";
 
 let root;
 
-import(/* webpackChunkName: "about" */ "./about.js").then((res) => {
-  console.log(res);
-});
-
 if (!window.__POWERED_BY_FRAMEWORK__) {
   root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(

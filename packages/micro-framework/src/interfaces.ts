@@ -6,6 +6,10 @@ declare global {
   }
 }
 
+export interface FrameworkConfiguration {
+  sandbox?: boolean;
+}
+
 export type ObjectType = Record<string, unknown>;
 
 interface IEntry {

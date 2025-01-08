@@ -11,7 +11,7 @@
     "prettier": "prettier src"
   },
   "config": {
-    "flat": true
+    "flat": false
   },
   "repository": {
     "type": "git",

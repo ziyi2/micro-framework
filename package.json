@@ -9,7 +9,8 @@
     "start:main-app": "npm run start --workspace=main-app",
     "start:react-app": "npm run start --workspace=react-app",
     "start:vue-app": "npm run start --workspace=vue-app",
-    "start:micro-framework": "npm run start --workspace=micro-framework"
+    "start:micro-framework": "npm run start --workspace=micro-framework",
+    "build": "npm run build --workspace=micro-framework"
   },
   "engines": {
     "node": ">=16"

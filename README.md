@@ -8,6 +8,9 @@
 # 安装依赖（packages 下的工作区会自动进行 npm link）
 npm i
 
+# 构建 micro-framework
+npm run build
+
 # 启动主应用、react 和 vue 微应用
 npm run start
 ```

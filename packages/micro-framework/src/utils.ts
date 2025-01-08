@@ -3,12 +3,8 @@ import { AppLifecycle } from "./interfaces";
 
 export const frameworkHeadTagName = "framework-head";
 
-// 获取微应用的 HTML 内容
 export function getHtmlContent(appName: string, template: string): string {
   let appContent = template;
-
-  // 将微应用的 head 标签替换为微前端框架的 head 标签
-  // 如果存在 head 标签，则替换，否则在已有的 HTML 模板前添加微前端框架的 head 标签
   if (template.includes("<head>")) {
     appContent = appContent
       .replace("<head>", `<${frameworkHeadTagName}>`)
@@ -16,20 +12,15 @@ export function getHtmlContent(appName: string, template: string): string {
   } else {
     appContent = `<${frameworkHeadTagName}></${frameworkHeadTagName}>${appContent}`;
   }
-
-  // 给微应用的 HTML 添加一个容器元素，用于挂载微应用
-  // 在容器元素上添加微应用的标识信息
   return `<div data-framework-app="${appName}">${appContent}</div>`;
 }
 
-// 将 HTML 字符串转化为 DOM 对象
 export function createElement(appContent: string): HTMLElement {
   const container = document.createElement("div");
   container.innerHTML = appContent;
   return container.firstChild as HTMLElement;
 }
 
-// 返回一个函数，用于将微应用的 DOM 对象挂载到容器元素上
 export function getElementRender() {
   return (
     appElement: HTMLElement | null,
@@ -39,12 +30,10 @@ export function getElementRender() {
     if (!container) {
       throw new Error(`Container ${appContainer?.toString()} not found`);
     }
-    // 如果容器元素存在且不包含微应用的 DOM 对象，则将微应用的 DOM 对象挂载到容器元素上
     if (container && !container.contains(appElement)) {
       while (container?.firstChild) {
         container.removeChild(container.firstChild);
       }
-      // 如果传入的 DOM 对象为 null, 则只是清空容器元素，不进行挂载操作
       if (appElement) {
         container.appendChild(appElement);
       }
@@ -58,17 +47,52 @@ export function getContainerElement(container: string | HTMLElement) {
     : container;
 }
 
-// TODO: globalLatestSetProp 识别
-export function getAppLifecycle<T>(appExports: AppLifecycle, name: string) {
-  // 获取微应用的生命周期函数
-  const { bootstrap, mount, unmount } = appExports;
+/** 校验子应用导出的 生命周期 对象是否正确 */
+export function validateExportLifecycle(exports: any) {
+  const { bootstrap, mount, unmount } = exports ?? {};
+  return isFunction(bootstrap) && isFunction(mount) && isFunction(unmount);
+}
 
-  // 强制框架传入的生命周期函数必须为函数（single-spa 还支持传递数组）
-  if (!isFunction(bootstrap) || !isFunction(mount) || !isFunction(unmount)) {
-    throw new Error(
-      `[framework] The micro app ${name} must export the lifecycle functions`
+export function getAppLifecycle<T>(
+  appExports: AppLifecycle,
+  appName: string,
+  global: typeof window,
+  globalLatestSetProp: PropertyKey | null
+) {
+  if (validateExportLifecycle(appExports)) {
+    return appExports;
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    console.error(
+      `[Framework] lifecycle not found from ${appName} entry exports, fallback to get from window['${appName}']`
+    );
+  }
+  // fallback to sandbox latest set property if it had
+  // 如果 scriptExports 不符合生命周期函数的格式，则尝试从最后一个设置的 window 属性中获取
+  // 无沙箱模式下，globalLatestSetProp 为 undefined
+  if (globalLatestSetProp) {
+    const lifecycles = (<any>global)[globalLatestSetProp];
+    if (validateExportLifecycle(lifecycles)) {
+      return lifecycles;
+    }
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    console.warn(
+      `[Framework] lifecycle not found from ${appName} entry exports, fallback to get from window['${appName}']`
     );
   }
 
-  return appExports;
+  // fallback to global variable who named with ${appName} while module exports not found
+  // 如果 scriptExports 不符合生命周期函数的格式，则尝试从 window[appName] 中获取
+  const globalVariableExports = (global as any)[appName];
+
+  if (validateExportLifecycle(globalVariableExports)) {
+    return globalVariableExports;
+  }
+
+  throw new Error(
+    `[Framework] You need to export lifecycle functions in ${appName} entry`
+  );
 }
