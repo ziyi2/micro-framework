@@ -166,7 +166,7 @@ export class Sandbox {
 
         // 避免使用 window.window 或 window.self 来逃逸沙箱环境，从而访问 window
         if (p === "window" || p === "self") {
-          return this.proxy;
+          return proxy;
         }
 
         // hijack globalWindow accessing with globalThis keyword
@@ -175,7 +175,7 @@ export class Sandbox {
         // globalThis 是一个全局对象，类似于 window，
         // 它是 ES2020 中引入的，确保在多个环境中都能访问到全局对象，不管是浏览器环境还是 Node.js 环境
         if (p === "globalThis") {
-          return this.proxy;
+          return proxy;
         }
 
         // 如果访问 window.top 或 window.parent
