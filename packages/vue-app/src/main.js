@@ -8,15 +8,16 @@ if (!window.__POWERED_BY_FRAMEWORK__) {
 }
 
 export async function bootstrap() {
-  console.log("[Vue 子应用] bootstrap excuted");
+  // console.log("[Vue 子应用] bootstrap excuted");
 }
 
 export async function mount(props) {
   // 下一次进入时，查看 window.micro 的值
-  console.log("window.micro", window.micro);
+  console.log("[Vue 微应用] mount 开始时读取 window.micro 值：", window.micro);
 
   // 变更 window 属性
   window.micro = "micro-vue";
+  console.log("[Vue 微应用]", "设置 micro 的值为 micro-vue。");
 
   app = createApp(App);
   // micro-framework 在注册 vue 子应用时会通过 props 传递 container
@@ -25,7 +26,7 @@ export async function mount(props) {
   app.mount(props.container.querySelector("#app"));
 }
 
-export async function unmount(props) {
-  console.log("[Vue 子应用] unmount excuted, props: ", props);
+export async function unmount() {
+  // console.log("[Vue 子应用] unmount excuted, props: ", props);
   app && app.unmount();
 }

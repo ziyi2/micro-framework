@@ -1,5 +1,3 @@
-import { memoize } from "lodash";
-
 const frozenPropertyCacheMap = new WeakMap<any, Record<PropertyKey, boolean>>();
 export function isPropertyFrozen(target: any, p?: PropertyKey): boolean {
   if (!target || !p) {
