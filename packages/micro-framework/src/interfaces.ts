@@ -4,10 +4,36 @@ declare global {
   interface Window {
     __POWERED_BY_FRAMEWORK__?: boolean;
   }
+
+  interface Navigator {
+    connection: {
+      saveData: boolean;
+      effectiveType: string;
+      type:
+        | "bluetooth"
+        | "cellular"
+        | "ethernet"
+        | "none"
+        | "wifi"
+        | "wimax"
+        | "other"
+        | "unknown";
+    };
+  }
 }
+
+export type PrefetchStrategy =
+  | boolean
+  | "all"
+  | string[]
+  | ((apps: IRegisterApp[]) => {
+      criticalAppNames: string[];
+      minorAppsName: string[];
+    });
 
 export interface FrameworkConfiguration {
   sandbox?: boolean;
+  prefetch?: PrefetchStrategy;
 }
 
 export type ObjectType = Record<string, unknown>;

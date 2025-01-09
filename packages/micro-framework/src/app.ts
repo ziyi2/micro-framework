@@ -19,6 +19,7 @@ export async function importHtmlEntry(
   frameworkConfiguration: FrameworkConfiguration
 ) {
   const { entry, container, name } = app;
+  console.log("[Framework] importHtmlEntry", app);
   const { template, getExternalScripts, execScripts } = await importEntry(
     entry
   );
