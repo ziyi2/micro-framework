@@ -12,12 +12,15 @@ export async function bootstrap() {
 }
 
 export async function mount(props) {
-  // 下一次进入时，查看 window.micro 的值
-  console.log("[Vue 微应用] mount 开始时读取 window.micro 值：", window.micro);
-
-  // 变更 window 属性
-  window.micro = "micro-vue";
-  console.log("[Vue 微应用]", "设置 micro 的值为 micro-vue。");
+  props.onGlobalStateChange((state) => {
+    // 不接收自己发送的消息
+    if (state.origin === "vue-app") return;
+    console.log("[Vue 子应用] 监听触发：", state);
+  });
+  props.setGlobalState({
+    message: "这是一条 Vue 子应用发送的消息，Vue 子应用的 mount 方法被调用。",
+    origin: "vue-app",
+  });
 
   app = createApp(App);
   // micro-framework 在注册 vue 子应用时会通过 props 传递 container

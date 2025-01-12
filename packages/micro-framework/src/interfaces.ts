@@ -62,3 +62,17 @@ export type AppLifecycle<ExtraProps extends ObjectType = ObjectType> = {
   mount: LifeCycleFn<ExtraProps>;
   unmount: LifeCycleFn<ExtraProps>;
 };
+
+export type OnGlobalStateChangeCallback = (
+  state: Record<string, any>,
+  prevState: Record<string, any>
+) => void;
+
+export type MicroAppStateActions = {
+  onGlobalStateChange: (
+    callback: OnGlobalStateChangeCallback,
+    fireImmediately?: boolean
+  ) => void;
+  setGlobalState: (state: Record<string, any>) => boolean;
+  offGlobalStateChange: () => boolean;
+};

@@ -20,15 +20,16 @@ export async function bootstrap() {
 }
 
 export async function mount(props) {
-  // 下一次进入时，查看 window.micro 的值
-  console.log(
-    "[React 微应用] mount 开始时读取 window.micro 值：",
-    window.micro
-  );
-
-  // 变更 window 属性
-  window.micro = "micro-react";
-  console.log("[React 微应用]", "设置 micro 的值为 micro-react。");
+  props.onGlobalStateChange((state, prev) => {
+    // 不接收自己发送的消息
+    if (state.origin === "react-app") return;
+    console.log("[Vue 子应用] 监听触发：", state);
+  });
+  props.setGlobalState({
+    message:
+      "这是一条 React 子应用发送的消息，React 子应用的 mount 方法被调用。",
+    origin: "react-app",
+  });
 
   // micro-framework 在注册 react 子应用时会通过 props 传递 container
   // Creact React App 自带的 HTML 模版的挂载节点是 #root（可以查看 public/index.html）
