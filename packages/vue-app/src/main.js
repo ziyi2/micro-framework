@@ -7,9 +7,7 @@ if (!window.__POWERED_BY_FRAMEWORK__) {
   app.mount("#app");
 }
 
-export async function bootstrap() {
-  // console.log("[Vue 子应用] bootstrap excuted");
-}
+export async function bootstrap() {}
 
 export async function mount(props) {
   props.onGlobalStateChange((state) => {
@@ -24,13 +22,9 @@ export async function mount(props) {
   // });
 
   app = createApp(App);
-  // micro-framework 在注册 vue 子应用时会通过 props 传递 container
-  // Vue CLI 生成的项目中应用的挂载节点是 #app（可以查看 public/index.html）
-  // 因此可以从 container 中获取到 #app 节点挂载 Vue 应用
   app.mount(props.container.querySelector("#app"));
 }
 
 export async function unmount() {
-  // console.log("[Vue 子应用] unmount excuted, props: ", props);
   app && app.unmount();
 }

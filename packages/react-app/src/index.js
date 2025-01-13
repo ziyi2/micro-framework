@@ -15,9 +15,7 @@ if (!window.__POWERED_BY_FRAMEWORK__) {
   );
 }
 
-export async function bootstrap() {
-  // console.log("[React 子应用] bootstrap excuted");
-}
+export async function bootstrap() {}
 
 export async function mount(props) {
   props.onGlobalStateChange((state, prev) => {
@@ -32,14 +30,10 @@ export async function mount(props) {
   //   origin: "react-app",
   // });
 
-  // micro-framework 在注册 react 子应用时会通过 props 传递 container
-  // Creact React App 自带的 HTML 模版的挂载节点是 #root（可以查看 public/index.html）
-  // 因此可以从 container 中获取到 #root 节点挂载 react 应用
   root = ReactDOM.createRoot(props.container.querySelector("#root"));
   root.render(<App />);
 }
 
 export async function unmount() {
-  // console.log("[React 子应用] unmount excuted, props: ", props);
   root && root.unmount();
 }
