@@ -23,13 +23,14 @@ export async function mount(props) {
   props.onGlobalStateChange((state, prev) => {
     // 不接收自己发送的消息
     if (state.origin === "react-app") return;
-    console.log("[Vue 子应用] 监听触发：", state);
+    console.log("[React 子应用] 监听触发：", state);
   });
-  props.setGlobalState({
-    message:
-      "这是一条 React 子应用发送的消息，React 子应用的 mount 方法被调用。",
-    origin: "react-app",
-  });
+  // 如果希望子应用在挂载时发送消息给主应用，可以在 mount 方法中调用 setGlobalState 方法
+  // props.setGlobalState({
+  //   message:
+  //     "这是一条 React 子应用发送的消息，React 子应用的 mount 方法被调用。",
+  //   origin: "react-app",
+  // });
 
   // micro-framework 在注册 react 子应用时会通过 props 传递 container
   // Creact React App 自带的 HTML 模版的挂载节点是 #root（可以查看 public/index.html）

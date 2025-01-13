@@ -7,11 +7,12 @@ const actions: MicroAppStateActions = initGlobalState({
   origin: "master",
 });
 
-actions.onGlobalStateChange((state) => {
-  // 不接收自己发送的消息
-  if (state.origin === "master") return;
-  console.log("[主应用] 监听触发", state);
-});
+// 如果希望微应用发送消息给主应用，也可以在主应用中监听
+// actions.onGlobalStateChange((state) => {
+//   // 不接收自己发送的消息
+//   if (state.origin === "master") return;
+//   console.log("[主应用] 监听触发", state);
+// });
 
 // 此时子应用还没有挂载，所以这条消息会被丢弃
 actions.setGlobalState({
