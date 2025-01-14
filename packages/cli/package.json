@@ -1,0 +1,19 @@
+{
+  "name": "microframwork-cli",
+  "version": "1.0.0",
+  "description": "",
+  "bin": {
+    "microframwork-cli": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^13.0.0",
+    "download-git-repo": "^3.0.2",
+    "ora": "^4.1.1"
+  }
+}

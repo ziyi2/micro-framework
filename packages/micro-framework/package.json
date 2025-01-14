@@ -1,6 +1,6 @@
 {
-  "name": "micro-framework",
-  "version": "1.0.0",
+  "name": "micro-framework-test",
+  "version": "1.0.1",
   "description": "深入浅出微前端",
   "main": "lib/es/index.js",
   "scripts": {
